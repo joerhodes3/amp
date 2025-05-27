@@ -1,0 +1,245 @@
+.title modern_tube_amp
+*
+* old opamp -- remove and include TI in compatibility mode
+.include "/home/jrhodes/modern_tube_amp/spice/opamp_old.lib"
+*
+*.include "/home/jrhodes/modern_tube_amp/spice/opa1641.lib"
+*.include "/home/jrhodes/modern_tube_amp/spice/OPA2156.lib"
+*
+* input -- RCA and/or XLR+ (pin 2)
+V1 IN 0 DC SIN(0 1.2 1k) 
+* ?? want V2 as 180 out of phase with V1
+* XLR- (pin 3)
+*V2 IN- 0 DC -V1 ; also tried -V(IN)
+
+* board power
+V3 /pwr GND DC 5
+
+* op amp power
+V4 VEE GND DC -12
+V5 VCC GND DC 12
+
+* tube heaters
+V6 HA GND DC 6 
+V7 HB GND DC 6 
+V8 HC GND DC 6 
+V9 HD GND DC 6 
+
+* tube power
+V10 /B+ GND DC 460 
+
+*********************** ss pre amp
+* op pwr
+C24 VCC GND 300u
+C23 GND VEE 300u
+C25 GND VEE 300u
+C26 VCC GND 300u
+C27 GND VEE 300u
+C28 VCC GND 300u
+
+* preamp power
+C19 GND VEE 100n
+C20 GND VCC 100n
+* preamp
+* + - OUT1 +12V + - OUT2 -12V
+XU10 U10A-OUT_A_ U10A--IN_A_ U10A-+IN_A_ VCC U10B-+IN_B_ U10B--IN_B_ U10B-OUT_B_ VEE OPAMP_DIP8
+* out
+C18 U10B-OUT_B_ GND 200p
+R18 U10B-OUT_B_ /PRE- 300
+C17 GND U10A-OUT_A_ 200p
+R17 U10A-OUT_A_ /PRE+ 300
+* pre in
+R21 /Unbal+ U10B-+IN_B_ 4.7k
+R20 U10B-+IN_B_ GND 1.5k
+R22 /Unbal+ U10B--IN_B_ 4.7k
+R23 /Unbal- U10A-+IN_A_ 4.7k
+R25 U10A-+IN_A_ GND 1.5k
+R24 /Unbal- U10A--IN_A_ 4.7k
+* pre feedbak
+R26 U10A--IN_A_ U10A-OUT_A_ 50k
+R6 U10B--IN_B_ U10B-OUT_B_ 50k
+
+
+*balanced power
+C21 GND VCC 100n
+C22 GND VEE 100n
+* RCA to balanced
+* + - OUT1 +12V + - OUT2 -12V
+XU11 U11A-OUT_A_ U11A--IN_A_ U11A-+IN_A_ VCC GND U11B--IN_B_ U11B-OUT_B_ VEE OPAMP_DIP8
+* in
+R9 IN U11A-+IN_A_ 4.7k
+* bal feedback
+R28 GND U11A-OUT_A_ 4.7k
+R30 GND U11B-OUT_B_ 4.7k
+
+R29 U11A-OUT_A_ U11A--IN_A_ 4.7k
+R10 U11B--IN_B_ U11A-OUT_A_ 4.7k
+R11 U11B-OUT_B_ U11B--IN_B_ 4.7k
+* bal out
+C8 GND U11A-OUT_A_ 200p
+C9 U11B-OUT_B_ GND 200p
+* why +/- same and not 180 out of phase?
+R13 U11B-OUT_B_ /Unbal- 100
+R12 U11A-OUT_A_ /Unbal+ 100
+
+**********************to do filter
+
+********************** tube amp
+* input
+R2 /B+ U3B-A_ 260k
+R3 /B+ U3A-A_ 260k
+XU3 U3B-A_ /PRE+ U3B-K_ HA HB U3A-A_ /PRE- U3A-K_ GND 12AX7_dual
+* output via Annode
+C3 U3B-A_ /SIG+ 0.22u ; 400V Bypass caps
+C4 U3A-A_ /SIG- 0.22u ; 400V Bypass caps
+
+* was 220k -- higher R is higher voltage /SIG on GRID going into KT88
+Rgrid1 /SIG+ GND 100k
+Rgrid2 /SIG- GND 100k
+
+* Cathode bypass caps
+C6 GND U3B-K_ 25u
+R5 U3B-K_ GND 1.5k
+
+C7 GND U3A-K_ 25u
+R4 U3A-K_ GND 1.5k
+
+* output
+* KT88 still not right -- Cathode way too high and climbing, plate stuck at /B+
+* LM317 model too simplified??? got KT88 (inline) model same place I got the 12ax7 (inline), so likely true, but don't know???
+* ? G1 from 12ax7 67V, but claim the expectation is 0v???? not sure I buy this -- as my goal was to get most of my gain in the 12ax7 (32x or so)
+* as you can see from the screenshot.png, the output of the 12ax7 goes though a C3/4, rgrid, and rstop to be (G1A and G1B at the KT88)
+* happy to the grid, but why cathode bias so high (I tryly suspect the lm317 model)? expect sine wave output on plate (out_n and out_p)?
+* The files are in () a public github repo as I was cheated out of my 2 file uploads today while composing this question, not submiting
+*.control
+*op
+*print v(/B+)
+*print v(/l+) v(/l-) v(U5A-K_G3_) v(U6A-K_G3_)
+*print i(VPLATE+) i(VPLATE-)
+*print v(out_n) v(out_p)
+Rstop1 G1A /SIG+ 1k
+XU5 NC-U5-0 G1A U5A-K_G3_ HC GND NC-U5-1 out_p NC-U5-2 /l+ KT88
+C1 /l+ GND 0.047u ; 400V Bypass caps
+
+Rstop2 G1B /SIG- 1k
+XU6 NC-U6-0 G1B U6A-K_G3_ HD GND NC-U6-1 out_n NC-U6-2 /l- KT88
+C5 GND /l- 0.047u ; 400V Bypass caps
+
+* bias
+XU7 U7-ADJ_ GND U7-VI_ LM317H
+Rset VI cathode 10    ; Sets I = 1.25 / 10 = 125 mA
+R1 U7-ADJ_ GND 6
+
+R8 U7-VI_ U6A-K_G3_ 10
+R7 U5A-K_G3_ U7-VI_ 10
+
+* power bypas cap
+C2 GND /B+ 100u ; 500V Jupiter Axial Cap
+XT4 out_p /l+ /B+ /l- out_n unconnected-_T4-Pad6_ /Spk+ unconnected-_T4-Pad8_ /Spk- Ham1650P
+* measure output here
+* LS1 /Spk-png /Spk+ Speaker
+
+
+
+
+.tran 10u 20m
+.control
+run
+plot v(g1a) v(g1b) v(U5A-K_G3_) v(out_p) v(out_n)
+.endc
+* ===========================
+* 12AX7 SPICE Model by Norman Koren
+* ===========================
+.SUBCKT 12AX7_single 1 2 3  ; P G C;  NEW MODEL
++ PARAMS: MU=100 EX=1.4 KG1=1060 KP=600 KVB=300 RGI=2000 
++ CCG=2.3P  CGP=2.4P CCP=.9P  ; ADD .7PF TO ADJACENT PINS; .5 TO OTHERS. 
+E1 7 0 VALUE={V(1,3)/KP*LOG(1+EXP(KP*(1/MU+V(2,3)/SQRT(KVB+V(1,3)*V(1,3)))))}
+RE1 7 0 1G
+G1 1 3 VALUE={(PWR(V(7),EX)+PWRS(V(7),EX))/KG1}
+RCP 1 3 1G    ; TO AVOID FLOATING NODES IN MU-FOLLOWER
+C1 2 3 {CCG}  ; CATHODE-GRID
+C2 2 1 {CGP}  ; GRID=PLATE
+C3 1 3 {CCP}  ; CATHODE-PLATE
+D3 5 3 DX     ; FOR GRID CURRENT
+R1 2 5 {RGI}  ; FOR GRID CURRENT
+.MODEL DX D(IS=1N RS=1 CJO=10PF TT=1N)
+.ENDS
+
+.SUBCKT 12AX7_dual 1 2 3 4 5 6 7 8 9
+* pin 4 id H1
+* pin 5 is H2
+* pin 9 is HGND
+XUB 1 2 3 12AX7_single
+XUA 6 7 8 12AX7_single
+.ENDS 12AX7_dual
+
+* ===========================
+* KT88 SPICE Model
+* ===========================
+*.SUBCKT KT88 1 2 3 4 ;  A G1 K G2
+* pin 1,6,8 unused
+.SUBCKT KT88 nc 2 3 heater+ heater- nc 1 nc 4
++ PARAMS: MU=8.8 EX=1.35 KG1=730 KG2=4800 KP=32 KVB=16
++         CCG=14P CPG1=.85P CCP=12P RGI=1K 
+
+RE1  7 0  1MEG    ; DUMMY SO NODE 7 HAS 2 CONNECTIONS
+E1   7 0  VALUE={V(4,3)/KP*LOG(1+EXP((1/MU+V(2,3)/V(4,3))*KP))}
+G1   1 3  VALUE={(PWR(V(7),EX)+PWRS(V(7),EX))/KG1*ATAN(V(1,3)/KVB)}
+* Safe, clamped version of G2 to avoid log(negative)
+G2   4 3  VALUE={(EXP(EX*LOG(LIMIT((V(4,3)/MU)+V(2,3), 1e-6, 1e6))))/KG2}
+
+RCP  1 3  1G      ; FOR CONVERGENCE
+C1   2 3  {CCG}    ; CATHODE-GRID 1
+C2   1 2  {CPG1}  ; GRID 1-PLATE
+C3   1 3  {CCP}   ; CATHODE-PLATE
+R1   2 5  {RGI}   ; FOR GRID CURRENT
+D3   5 3  DX      ; FOR GRID CURRENT
+.MODEL DX D(IS=1N RS=1 CJO=10PF TT=1N)
+.ENDS KT88
+
+* ===========================
+* output transformer
+* ===========================
+.SUBCKT Ham1650P P1 Sg1 B Sg2 P2 O16 O8 O4 Com				
+* Push Pull transformer, with Ultralinear taps at 40%				
+* 6600 to 16 ohms, 3db 15 to 60000 hz				
+* speaker taps at 8 and 4 ohms				
+*  Hammond 1650P				
+*   				
+*  model generated by TransformerModels.xls 2025 May 11				
+*  				
+LP1 1 Sg1 3.19344114792738				
+LS1 2 B 1.41930717685661				
+LS2 3 Sg2 1.41930717685661				
+LP2 4 P2 3.19344114792738				
+LA1 5 O8 0.00741645776380232				
+LA2 6 O4 0.00370822888190116				
+LA3 7 Com 0.02161314180004				
+KALL LP1 LS1 LS2 LP2 LA1 LA2 LA3 0.998434750532355				
+RP1 P1 1 30				
+RP2 Sg1 2 15				
+RP3 B 3 15				
+RP4 Sg2 4 30				
+RS1 O16 5 0.1				
+RS2 O8 6 0.1				
+RS3 O4 7 0.1				
+.ENDS Ham1650P				
+* Acro Elco HK Peerless Dynaco Leak Gen Edcor
+
+* ===========================
+* LM317 -- BIAS (so all about the current extration -- 0 = (1 +R2/R1)*1.25
+* ===========================
+.SUBCKT LM317H ADJ OUT IN
+VSET OUT ADJ DC 1.25
+.ENDS
+
+********************************************************************************
+* opaamp using old, but eventually want TI OPA2156
+* Is a DIP8 Package
+********************************************************************************
+.SUBCKT OPAMP_DIP8 1 2 3 4 5 6 7 8
+X_opamp_A 3 2 4 8 1 OPAMP_SINGLE
+X_opamp_B 5 6 4 8 7 OPAMP_SINGLE
+.ENDS
+
+.end
