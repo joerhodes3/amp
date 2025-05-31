@@ -1,13 +1,16 @@
 .title modern_tube_amp
 *
 * old opamp -- remove and include TI in compatibility mode
-*.include "/home/jrhodes/modern_tube_amp/spice/opamp_old.lib"
+.include "/home/jrhodes/modern_tube_amp/spice/opamp_old.lib"
 *
 *.include "/home/jrhodes/modern_tube_amp/spice/opa1641.lib"
-.include "/home/jrhodes/modern_tube_amp/spice/OPA2156.lib"
+*.include "/home/jrhodes/modern_tube_amp/spice/OPA2156.lib"
 *
 * input -- RCA and/or XLR+ (pin 2)
-V1 IN 0 DC SIN(0 1.2 1k) 
+V1 IN 0 DC SIN(0 1.2 1k)
+* in truth /Vgnd and GND will likely differ by 12V or so -- that is why they are isolated
+Rsim_vgnd1 /Vgnd 0 1
+*
 * ?? want V2 as 180 out of phase with V1
 * XLR- (pin 3)
 *V2 IN- 0 DC -V1 ; also tried -V(IN)
@@ -16,71 +19,85 @@ V1 IN 0 DC SIN(0 1.2 1k)
 V3 /pwr GND DC 5
 
 * op amp power
-V4 VEE GND DC -12
-V5 VCC GND DC 12
+V4 /VEE /Vgnd DC -12
+V5 /VCC /Vgnd DC 12
 
-* tube heaters
-V6 HA GND DC 6 
-V7 HB GND DC 6 
-V8 HC GND DC 6 
-V9 HD GND DC 6 
+* tube heaters -- make soft start, RC delay ramps up slowly?
+V6 /H1 /HGND_12ax7 DC 6 
+V7 /H2 /HGND_12ax7 DC 6 
+V8 /H3 /HGND_KT88 DC 6 
+V9 /H4 /HGND_KT88 DC 6 
+* for sim let /HGND be GND -- in real life, isolated
+RHGND1 /HGND_12ax7 GND 1
+RHGND2 /HGND_KT88 GND 1
 
 * tube power
 V10 /B+ GND DC 460 
 
 *********************** ss pre amp
 * op pwr
-C24 VCC GND 300u
-C23 GND VEE 300u
-C25 GND VEE 300u
-C26 VCC GND 300u
-C27 GND VEE 300u
-C28 VCC GND 300u
+C23 /Vgnd /VCC 300u
+C24 /VEE /Vgnd 300u
+C25 /Vgnd /VCC 300u
+C26 /VEE /Vgnd 300u
+C27 /Vgnd /VCC 300u
+C28 /VEE /Vgnd 300u
 
 * preamp power
-C19 GND VEE 100n
-C20 GND VCC 100n
-* preamp
-* + - OUT1 +12V + - OUT2 -12V
-XU10 U10A-OUT_A_ U10A--IN_A_ U10A-+IN_A_ VCC U10B-+IN_B_ U10B--IN_B_ U10B-OUT_B_ VEE OPAMP_DIP8
+C19 /Vgnd /VCC 100n
+C20 /Vgnd /VEE 100n
+* preamp -- 4x+ balanced gain
+XU_preamp T5-AA_ U10A--IN_A_ U10A-+IN_A_ /VCC U10B-+IN_B_ U10B--IN_B_ T6-AA_ /VEE OPAMP_DIP8
+
+*in
+R23 /Unbal- U10A-+IN_A_ 10k
+R21 /Unbal+ U10B-+IN_B_ 10k
+
+R25 U10A-+IN_A_ /Vgnd 10k
+R20 U10B-+IN_B_ /Vgnd 10k
+
+* feedback
+R26 U10A--IN_A_ T5-AA_ 10k
+R6 U10B--IN_B_ T6-AA_ 10k
+
+R22 /Unbal+ U10B--IN_B_ 500
+R24 /Unbal- U10A--IN_A_ 500
+
 * out
-C18 U10B-OUT_B_ GND 200p
-R18 U10B-OUT_B_ /PRE- 300
-C17 GND U10A-OUT_A_ 200p
-R17 U10A-OUT_A_ /PRE+ 300
-* pre in
-R21 /Unbal+ U10B-+IN_B_ 4.7k
-R20 U10B-+IN_B_ GND 1.5k
-R22 /Unbal+ U10B--IN_B_ 4.7k
-R23 /Unbal- U10A-+IN_A_ 4.7k
-R25 U10A-+IN_A_ GND 1.5k
-R24 /Unbal- U10A--IN_A_ 4.7k
-* pre feedbak
-R26 U10A--IN_A_ U10A-OUT_A_ 50k
-R6 U10B--IN_B_ U10B-OUT_B_ 50k
+C1 T6-AA_ T5-AA_ .1u
+
+XT5 T5-AA_ /Vgnd /PRE+ GND XFMR
+XT6 T6-AA_ /Vgnd /PRE- GND XFMR
+
+
+
 
 
 *balanced power
-C21 GND VCC 100n
-C22 GND VEE 100n
-* RCA to balanced
-* + - OUT1 +12V + - OUT2 -12V
-XU11 U11A-OUT_A_ U11A--IN_A_ U11A-+IN_A_ VCC GND U11B--IN_B_ U11B-OUT_B_ VEE OPAMP_DIP8
-* in
-R9 IN U11A-+IN_A_ 4.7k
-* bal feedback
-R28 GND U11A-OUT_A_ 4.7k
-R30 GND U11B-OUT_B_ 4.7k
+Cbal_e1 /Vgnd /VEE 100n
+Cbal_c1 /Vgnd /VCC 100n
 
-R29 U11A-OUT_A_ U11A--IN_A_ 4.7k
-R10 U11B--IN_B_ U11A-OUT_A_ 4.7k
-R11 U11B-OUT_B_ U11B--IN_B_ 4.7k
-* bal out
-C8 GND U11A-OUT_A_ 200p
-C9 U11B-OUT_B_ GND 200p
-* why +/- same and not 180 out of phase?
-R13 U11B-OUT_B_ /Unbal- 100
-R12 U11A-OUT_A_ /Unbal+ 100
+* RCA to balanced -- goal is unity gain
+X_bal bal-OUT_A_ bal--IN_A_ bal-+IN_A_ /VCC /Vgnd bal--IN_B_ bal-out_B_ /VEE OPAMP_DIP8
+
+* in+ (noninverting)
+Rbal_in1 bal-+IN_A_ IN 10k
+Rbal_in_gnd1 bal-+IN_A_ /Vgnd 10k
+* feedback+
+Rbal_back1 bal--IN_A_ bal-OUT_A_ 10k
+Rbal_back_gnd1 bal--IN_A_ /Vgnd 10k
+
+* in - (inverting)
+Rbal_in2 bal--IN_B_ IN 10k
+* feedback-
+Rbal_back2 bal--IN_B_ bal-OUT_B_ 10k
+
+* out
+Rbal_out1 bal-OUT_A_ /Unbal+ 300
+Cbal1 /Vgnd_ bal-OUT_A_ .1u
+
+Rbal_out2 bal-OUT_B_ /Unbal- 300
+Cbal2 /Vgnd bal-OUT_B_ .1u
 
 **********************to do filter
 
@@ -88,7 +105,7 @@ R12 U11A-OUT_A_ /Unbal+ 100
 * input
 R2 /B+ U3B-A_ 260k
 R3 /B+ U3A-A_ 260k
-XU3 U3B-A_ /PRE+ U3B-K_ HA HB U3A-A_ /PRE- U3A-K_ GND 12AX7_dual
+XU3 U3B-A_ /PRE+ U3B-K_ /H1 /H2 U3A-A_ /PRE- U3A-K_ /HGND_12ax7 12AX7_dual
 * output via Annode
 C3 U3B-A_ /SIG+ 0.22u ; 400V Bypass caps
 C4 U3A-A_ /SIG- 0.22u ; 400V Bypass caps
@@ -110,14 +127,15 @@ Rstop1 G1A /SIG+ 1k
 * spice shows bogus 400V-1.5kV as well as bogus0--500v, so /Spk+ not showing right output (expect big sin wave) -- but this is likely due to these 2 false simulation artifacts
 * FALSE sim -- above and below plate voltage
 * also have TI opamp model working, so close to .FFT & design work
-XU5 NC-U5-0 G1A U5A-K_G3_ HC GND NC-U5-1 out_p NC-U5-2 /l+ KT88
+* possible my issue is the hand off from opam to 12ax7 --opamp +/-9V, 12ax7 0-230V; while looks sane, sim maybe missing something and I don't know
+XU5 NC-U5-0 G1A U5A-K_G3_ /H3 /HGND_KT88 NC-U5-1 out_p NC-U5-2 /l+ KT88
 
 Rstop2 G1B /SIG- 1k
-XU6 NC-U6-0 G1B U6A-K_G3_ HD GND NC-U6-1 out_n NC-U6-2 /l- KT88
+XU6 NC-U6-0 G1B U6A-K_G3_ /H4 /HGND_KT88 NC-U6-1 out_n NC-U6-2 /l- KT88
 
 * bias
 XU7 U7-ADJ_ GND U7-VI_ LM317
-Rset VI cathode 10    ; Sets I = 1.25 / 10 = 125 mA
+*********************Rset VI cathode 10    ; Sets I = 1.25 / 10 = 125 mA
 R1 U7-ADJ_ GND 36
 
 R8 U7-VI_ U6A-K_G3_ 4
@@ -128,6 +146,7 @@ C2 GND /B+ 100u ; 500V Jupiter Axial Cap
 XT4 out_p /l+ /B+ /l- out_n unconnected-_T4-Pad6_ /Spk+ unconnected-_T4-Pad8_ /Spk- Ham1650P
 * measure output here
 * LS1 /Spk- /Spk+ Speaker
+RSPK_common1 /Spk- GND 1
 
 
 
@@ -135,7 +154,7 @@ XT4 out_p /l+ /B+ /l- out_n unconnected-_T4-Pad6_ /Spk+ unconnected-_T4-Pad8_ /S
 .tran 10u 20m
 .control
 run
-plot v(g1a) v(g1b) v(out_p) v(out_n) v(/Spk+) v(/Spk-)
+plot v(/PRE+) v(/PRE-) v(g1a) v(g1b) v(/Spk+) v(/Spk-)
 .endc
 * ===========================
 * 12AX7 SPICE Model by Norman Koren
@@ -186,6 +205,15 @@ R1   2 5  {RGI}   ; FOR GRID CURRENT
 D3   5 3  DX      ; FOR GRID CURRENT
 .MODEL DX D(IS=1N RS=1 CJO=10PF TT=1N)
 .ENDS KT88
+
+* ===========================
+* isolation transformer
+* ===========================
+.SUBCKT XFMR 1 2 3 4
+L1 1 2 1000
+L2 3 4 1000
+K1 L1 L2 .9999999
+.ENDS
 
 * ===========================
 * output transformer

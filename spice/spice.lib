@@ -68,14 +68,14 @@ XUD 10 11 12 CD4066_single
 * ===========================
 * isolation transformer
 * ===========================
-.SUBCKT XFMR 0 1 2 3 4
+.SUBCKT XFMR 1 2 3 4
 L1 1 2 1000
 L2 3 4 1000
 K1 L1 L2 .9999999
 .ENDS
 
 * ===========================
-* ?output transformer?
+* output transformer
 * ===========================
 .SUBCKT Ham1650P P1 Sg1 B Sg2 P2 O16 O8 O4 Com				
 * Push Pull transformer, with Ultralinear taps at 40%				
