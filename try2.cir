@@ -7,16 +7,13 @@
 *.include "/home/jrhodes/modern_tube_amp/spice/OPA2156.lib"
 *
 * input -- RCA and/or XLR+ (pin 2)
-V1 IN 0 DC SIN(0 1.2 1k)
+V1 IN /Vgnd DC SIN(0 1.2 1k)
 * in truth /Vgnd and GND will likely differ by 12V or so -- that is why they are isolated
-Rsim_vgnd1 /Vgnd 0 1
-*
-* ?? want V2 as 180 out of phase with V1
 * XLR- (pin 3)
-*V2 IN- 0 DC -V1 ; also tried -V(IN)
+*V2 IN- /Vgnd DC -V(IN) ; should have worked
 
 * board power
-V3 /pwr GND DC 5
+V3 /pwr /Vgnd DC 5
 
 * op amp power
 V4 /VEE /Vgnd DC -12
@@ -32,7 +29,14 @@ RHGND1 /HGND_12ax7 GND 1
 RHGND2 /HGND_KT88 GND 1
 
 * tube power
-V10 /B+ GND DC 460 
+V10 /B+ /tube_GND DC 460 
+
+* GND management for sim --don't do in real life
+* -- in real life /tube_GND is GND in KiCAD -- will need to make LOGIC relitve to /Vgnd insch, and redo 20pin molex
+B2 /Vgnd 0 V = V(/tube_GND) - 12
+Rsim1 /tube_GND 0 1Meg
+Rsim2 /HGND_12ax7 0 1Meg
+Rsim3 /HGND_KT88 0 1Meg
 
 *********************** ss pre amp
 * op pwr
@@ -66,8 +70,8 @@ R24 /Unbal- U10A--IN_A_ 500
 * out
 C1 T6-AA_ T5-AA_ .1u
 
-XT5 T5-AA_ /Vgnd /PRE+ GND XFMR
-XT6 T6-AA_ /Vgnd /PRE- GND XFMR
+R9 T5-AA_ /PRE+ 500
+R10 T6-AA_ /PRE- 500
 
 
 
@@ -93,10 +97,10 @@ Rbal_in2 bal--IN_B_ IN 10k
 Rbal_back2 bal--IN_B_ bal-OUT_B_ 10k
 
 * out
-Rbal_out1 bal-OUT_A_ /Unbal+ 300
-Cbal1 /Vgnd_ bal-OUT_A_ .1u
+Rbal_out1 bal-OUT_A_ /Unbal+ 500
+Cbal1 /Vgnd bal-OUT_A_ .1u
 
-Rbal_out2 bal-OUT_B_ /Unbal- 300
+Rbal_out2 bal-OUT_B_ /Unbal- 500
 Cbal2 /Vgnd bal-OUT_B_ .1u
 
 **********************to do filter
@@ -107,42 +111,36 @@ R2 /B+ U3B-A_ 260k
 R3 /B+ U3A-A_ 260k
 XU3 U3B-A_ /PRE+ U3B-K_ /H1 /H2 U3A-A_ /PRE- U3A-K_ /HGND_12ax7 12AX7_dual
 * output via Annode
-C3 U3B-A_ /SIG+ 0.22u ; 400V Bypass caps
-C4 U3A-A_ /SIG- 0.22u ; 400V Bypass caps
+**C3 U3B-A_ /SIG+ 0.22u ; 400V Bypass caps
+**C4 U3A-A_ /SIG- 0.22u ; 400V Bypass caps
 
 * was 220k -- higher R is higher voltage /SIG on GRID going into KT88
-Rgrid1 /SIG+ GND 220k
-Rgrid2 /SIG- GND 220k
+Rgrid1 /SIG+ /tube_GND 220k
+Rgrid2 /SIG- /tube_GND 220k
 
 * Cathode bypass caps
-C6 GND U3B-K_ 25u
-R5 U3B-K_ GND 1.5k
+C6 /tube_GND U3B-K_ 25u
+R5 U3B-K_ /tube_GND 1.5k
 
-C7 GND U3A-K_ 25u
-R4 U3A-K_ GND 1.5k
+C7 /tube_GND U3A-K_ 25u
+R4 U3A-K_ /tube_GND 1.5k
 
 * output
-Rstop1 G1A /SIG+ 1k
-* KT88 is now toggling -- swaped out lm317 model, redid bias resistors, found K and G2 swapped in KT88 model
-* spice shows bogus 400V-1.5kV as well as bogus0--500v, so /Spk+ not showing right output (expect big sin wave) -- but this is likely due to these 2 false simulation artifacts
-* FALSE sim -- above and below plate voltage
-* also have TI opamp model working, so close to .FFT & design work
-* possible my issue is the hand off from opam to 12ax7 --opamp +/-9V, 12ax7 0-230V; while looks sane, sim maybe missing something and I don't know
-XU5 NC-U5-0 G1A U5A-K_G3_ /H3 /HGND_KT88 NC-U5-1 out_p NC-U5-2 /l+ KT88
+Rstop1 G1A /SIG+ 1.5k
+**XU5 NC-U5-0 G1A U5A-K_G3_ /H3 /HGND_KT88 NC-U5-1 out_p NC-U5-2 /l+ KT88
 
-Rstop2 G1B /SIG- 1k
-XU6 NC-U6-0 G1B U6A-K_G3_ /H4 /HGND_KT88 NC-U6-1 out_n NC-U6-2 /l- KT88
+Rstop2 G1B /SIG- 1.5k
+**XU6 NC-U6-0 G1B U6A-K_G3_ /H4 /HGND_KT88 NC-U6-1 out_n NC-U6-2 /l- KT88
 
 * bias
-XU7 U7-ADJ_ GND U7-VI_ LM317
-*********************Rset VI cathode 10    ; Sets I = 1.25 / 10 = 125 mA
-R1 U7-ADJ_ GND 36
+XU7 U7-ADJ_ /tube_GND U7-VI_ LM317
+R1 U7-ADJ_ /tube_GND 36
 
 R8 U7-VI_ U6A-K_G3_ 4
 R7 U5A-K_G3_ U7-VI_ 4
 
 * power bypas cap
-C2 GND /B+ 100u ; 500V Jupiter Axial Cap
+C2 /tube_GND /B+ 100u ; 500V Jupiter Axial Cap
 XT4 out_p /l+ /B+ /l- out_n unconnected-_T4-Pad6_ /Spk+ unconnected-_T4-Pad8_ /Spk- Ham1650P
 * measure output here
 * LS1 /Spk- /Spk+ Speaker
@@ -154,7 +152,7 @@ RSPK_common1 /Spk- GND 1
 .tran 10u 20m
 .control
 run
-plot v(/PRE+) v(/PRE-) v(g1a) v(g1b) v(/Spk+) v(/Spk-)
+plot v(/PRE+) v(/PRE-) v(U3A-A_) v(U3B-A_)
 .endc
 * ===========================
 * 12AX7 SPICE Model by Norman Koren
@@ -211,7 +209,7 @@ D3   5 3  DX      ; FOR GRID CURRENT
 * ===========================
 .SUBCKT XFMR 1 2 3 4
 L1 1 2 1000
-L2 3 4 1000
+L2 4 3 1000
 K1 L1 L2 .9999999
 .ENDS
 

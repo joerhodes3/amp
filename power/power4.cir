@@ -1,0 +1,67 @@
+* ±24V Linear Bipolar Supply from 48VDC
+*
+*                        | +24 (top) --> 460v tubes [boost]
+*                        |
+* -----48v--[Bipolar]----|
+*                        |                    | +12-[vreg]->+5v-[vreg]->+3.3v |
+*                        | +24 ---[Bipolar]---|                               |
+*                                             | -12                           | heaters (6.3v, 5.5a) [buck]
+*
+* Uses op-amps + power BJTs (MJL3281A/MJL1302A)
+*
+* use both 24V interally to ouput other voltages to AMPLIFIER [5v, +/-12v, 460v] also plan on using both [tube_GND, VGND]
+*   - this way can assume SIGNAL about 12V below tube_GND.......SIGNAL is +/-9V, so worst case -3v relitive to 12ax7 G1 (down to -21v) -- so better
+* also has a 12V trigger in and out, as well as a microcontroller @3.3v
+
+* Global supply rail
+VRAW 100 0 DC 48
+
+* Virtual ground generator (simple divider + buffer)
+R1 100 101 10k
+R2 101 0   10k
+* ?? do I really need this -- can I be cheap an not use (what is consiquince of not using)? -- what about TI opa2156 - is overpriced, but since I'm using elsewhere save the "tape cut" fee from supplier.
+XBUF 101 0 102 OPAMP
+* Now node 102 is virtual ground (VRAW/2 = 24V) --> output as "tube_GND"
+
+* top [24, tube_GND]
+* +24V Regulator (referenced to VRAW GND)
+* Output at node 110
+VREF_P 10 0 DC 24
+XREFBUF 10 0 11 OPAMP
+RBP 11 12 100
+QPOS 100 110 12 MJL3281A
+REP 110 102 0.1
+* opto-isolate "pwr" as base EN for 12v regulator --> "trigger"
+* switch x2 -- Darlitons controlled by "trigger"
+* boost 24v -->output as 460v@.4a "/B+"
+
+* bottom -- swap pwr,GND [tube_GND, -24] == 24V? -or- can I just use 2 QPOS transitors (NPN on both "top" and "bottom) and NOT swap?
+* -24V Regulator (referenced to 0V)
+* Output at node 120
+VREF_N 20 0 DC 24
+XREFBUFN 20 0 21 OPAMP
+RBN 21 22 100
+QNEG 0 120 22 MJL1302A
+REN 120 102 0.1
+* split into +/-12 -- 5V->3.3v in +12V leg -- output +/-12v (?"switch" on based on RC dlay of "pwr"?), 5v (always on), and VGND -- "VGND" is 12v below "tube_GND"
+* heater_swicth (RC delay) is Darlington in 24v bottom --> buck 6.3v@5.5a
+* output 4 seperate heater power, each with an RC delay to ramp up tube gently
+
+* Load (optional)
+RLOADP 110 102 2.4  ; draws ~10A from +24V
+RLOADN 120 102 2.4  ; draws ~10A from -24V
+
+* Models
+.model MJL3281A NPN (IS=1e-14 BF=100 VAF=100)
+.model MJL1302A PNP (IS=1e-14 BF=100 VAF=100)
+.subckt OPAMP in+ in- out
+* ideal op-amp
+E1 out 0 in+ in- 1Meg
+.ends
+
+.control
+op
+print v(110) v(120) v(102)
+.endc
+
+.end

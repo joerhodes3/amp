@@ -1,0 +1,19 @@
+﻿Part,Manufacturer,Part Number,Quantity,Price ($),Footprint (mm²),Description
+Rpg,Vishay-Dale,CRCW0603100KFKEA,1,0.01,4.68,Resistance: 100 kΩ  Tolerance: 1.0%  Power: 100 mW  
+M2,Texas Instruments,CSD17577Q5A,1,0.17,55.2,VdsMax: 30 V  IdsMax: 60 Amps  
+Rt,Yageo,RC0603FR-079K53L,1,0.01,4.68,Resistance: 9.53 kΩ  Tolerance: 1.0%  Power: 100 mW  
+Rconfig,Vishay-Dale,CRCW060340K2FKEA,1,0.01,4.68,Resistance: 40.2 kΩ  Tolerance: 1.0%  Power: 100 mW  
+Cvcc,MuRata,GRM188R71A225KE15D,1,0.02,4.68,Cap: 2.2 µF  Total Derated Cap: 2.2 µF  VDC: 10 V  ESR: 9 mΩ  Package: 0603  
+L1,NIC Components,NPI31P1R0MTRF,1,0.3036,184.61,L: 1 µH  DCR: 12 mΩ  IDC: 10 A  
+Rsense,Susumu Co Ltd,PRL1632-R008-F-T1,1,0.2,10.92,Resistance: 8 mΩ  Tolerance: 1.0%  Power: 1 W  
+Cin,TDK,C2012X5R1H475K125AB,1,0.12,6.75,Cap: 4.7 µF  Total Derated Cap: 1 µF  VDC: 50 V  ESR: 1 mΩ  Package: 0805  
+Cboot,MuRata,GRM155R71A104KA01D,1,0.01,3,Cap: 100 nF  Total Derated Cap: 100 nF  VDC: 10 V  ESR: 1 mΩ  Package: 0402  
+M1,Texas Instruments,CSD17507Q5A,1,0.23,55.2,VdsMax: 30 V  IdsMax: 65 Amps  
+U1,Texas Instruments,LM25148RGYR,1,0.526,48,
+Cout,MuRata,GRM31CR71E106KA12L,1,0.06,10.92,Cap: 10 µF  Total Derated Cap: 6.6 µF  VDC: 25 V  ESR: 4 mΩ  Package: 1206  
+Cvdda,MuRata,GRM155R71A104KA01D,1,0.01,3,Cap: 100 nF  Total Derated Cap: 100 nF  VDC: 10 V  ESR: 1 mΩ  Package: 0402  
+Ccomp2,Samsung Electro-Mechanics,CL21C330JBANNNC,1,0.01,6.75,Cap: 33 pF  Total Derated Cap: 33 pF  VDC: 50 V  ESR: 0 Ω  Package: 0805  
+Ccomp,Samsung Electro-Mechanics,CL05C821JB5NNNC,1,0.01,3,Cap: 820 pF  Total Derated Cap: 820 pF  VDC: 50 V  ESR: 0 Ω  Package: 0402  
+Rcomp,Vishay-Dale,CRCW04024K53FKED,1,0.01,3,Resistance: 4.53 kΩ  Tolerance: 1.0%  Power: 63 mW  
+Rfbt,Yageo,RC0402FR-0768K1L,1,0.01,3,Resistance: 68.1 kΩ  Tolerance: 1.0%  Power: 63 mW  
+Rfbb,Vishay-Dale,CRCW040210K0FKED,1,0.01,3,Resistance: 10 kΩ  Tolerance: 1.0%  Power: 63 mW  

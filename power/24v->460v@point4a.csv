@@ -1,0 +1,50 @@
+﻿Part,Manufacturer,Part Number,Quantity,Price ($),Footprint (mm²),Description
+U1,Texas Instruments,UCC2808D-2,1,1.441,0,
+Cf,Samsung Electro-Mechanics,CL21C471JBANNNC,1,0.01,6.75,Cap: 470 pF  Total Derated Cap: 470 pF  VDC: 50 V  ESR: 0 Ω  Package: 0805  
+O1,Vishay-Semiconductor,TCMT1107,1,0.19,43.65,CTR_Min: 80.0%  CTR_Max: 160.0%  IcMax: 50 mmA  
+R13,Vishay-Dale,CRCW04024K99FKED,1,0.01,3,Resistance: 4.99 kΩ  Tolerance: 1.0%  Power: 63 mW  
+R8,Yageo,RC0201FR-0710KL,1,0.01,2.08,Resistance: 10 kΩ  Tolerance: 1.0%  Power: 50 mW  
+R14,Vishay-Dale,CRCW0402487RFKED,1,0.01,3,Resistance: 487 Ω  Tolerance: 1.0%  Power: 63 mW  
+D8,SMC Diode Solutions,BAT54WSTR,1,0.02,8.7,Type: Schottky  VRRM: 30 V  Io: 200 mA  
+Rstartup,CUSTOM,CUSTOM,1,0,0,Resistance: 26.22 kΩ  Tolerance: 0.0%  Power: 0 W  
+R1,Vishay-Dale,CRCW04023R01FKED,1,0.01,3,Resistance: 3.01 Ω  Tolerance: 1.0%  Power: 63 mW  
+D11,Diodes Inc.,1N4148W-7-F,1,0.03,13.1,Type: Ultrafast  VRRM: 100 V  Io: 150 mA  
+Rf,Vishay-Dale,CRCW04021K00FKED,1,0.01,3,Resistance: 1 kΩ  Tolerance: 1.0%  Power: 63 mW  
+D10,CUSTOM,CUSTOM,1,0,0,Type: ?  VRRM: 2.68 kV  Io: 3 A  
+Dsnub1,SMC Diode Solutions,UF4004TA,1,0.04,43.42,Type: Ultrafast  VRRM: 400 V  Io: 1 A  
+R2,Yageo,RC0201FR-0710KL,1,0.01,2.08,Resistance: 10 kΩ  Tolerance: 1.0%  Power: 50 mW  
+D1,CUSTOM,CUSTOM,1,0,0,Type: ?  VRRM: 2.68 kV  Io: 3 A  
+Csnub1,MuRata,GRM31BR72E683KW01L,2,0.2,10.92,Cap: 68 nF  Total Derated Cap: 130 nF  VDC: 250 V  ESR: 1 mΩ  Package: 1206  
+Rcs,CUSTOM,CUSTOM,1,0,0,Resistance: 36.27 mΩ  Tolerance: 0.0%  Power: 0 W  
+Rsnub2,CUSTOM,CUSTOM,1,0,0,Resistance: 862.06 Ω  Tolerance: 0.0%  Power: 0 W  
+R17,Yageo,RC0201FR-0718K7L,1,0.01,2.08,Resistance: 18.7 kΩ  Tolerance: 1.0%  Power: 50 mW  
+R12,Yageo,RC0201FR-0710KL,1,0.01,2.08,Resistance: 10 kΩ  Tolerance: 1.0%  Power: 50 mW  
+VR,Texas Instruments,TL431IDBVR,1,0.05,16.39,IkMin: 400 mA  InitialAccuracy: 1.5%  ReferenceOutput: 2.5 V  
+T1,CUSTOM,CUSTOM,1,0,0,Ns1toNp: 23.23   Ns2toNp: 23.23   Lp: 135.88 µH  
+Rt,Yageo,RC0201FR-0715K4L,1,0.01,2.08,Resistance: 15.4 kΩ  Tolerance: 1.0%  Power: 50 mW  
+C1,TDK,C1005X5R1V105K050BC,1,0.03,3,Cap: 1 µF  Total Derated Cap: 1 µF  VDC: 35 V  ESR: 11.42 mΩ  Package: 0402  
+Rfbb,Vishay-Dale,CRCW040210K2FKED,1,0.01,3,Resistance: 10.2 kΩ  Tolerance: 1.0%  Power: 63 mW  
+C2,Vishay-Sprague,293D104X9035A2TE3,1,0.11,10.92,Cap: 100 nF  Total Derated Cap: 100 nF  VDC: 35 V  ESR: 20 Ω  Package: A  
+Cin,Panasonic,100SXV15M,4,1.95,106.09,Cap: 15 µF  Total Derated Cap: 60 µF  VDC: 100 V  ESR: 40 mΩ  Package: 8x11.9  
+M1,Infineon Technologies,BSC160N15NS5ATMA1,1,1.63,55.13,VdsMax: 150 V  IdsMax: 56 Amps  
+Rsnub1,CUSTOM,CUSTOM,1,0,0,Resistance: 862.06 Ω  Tolerance: 0.0%  Power: 0 W  
+Dsnub2,SMC Diode Solutions,UF4004TA,1,0.04,43.42,Type: Ultrafast  VRRM: 400 V  Io: 1 A  
+R7,Vishay-Dale,CRCW04023R01FKED,1,0.01,3,Resistance: 3.01 Ω  Tolerance: 1.0%  Power: 63 mW  
+R15,Vishay-Dale,CRCW04022K80FKED,1,0.01,3,Resistance: 2.8 kΩ  Tolerance: 1.0%  Power: 63 mW  
+D2,SMC Diode Solutions,BAT54WSTR,1,0.02,8.7,Type: Schottky  VRRM: 30 V  Io: 200 mA  
+D4,CUSTOM,CUSTOM,1,0,0,Type: ?  VRRM: 2.79 kV  Io: 600 mA  
+R16,Yageo,RC0201FR-07105KL,1,0.01,2.08,Resistance: 105 kΩ  Tolerance: 1.0%  Power: 50 mW  
+Ct,MuRata,GRM1555C1H241GA01D,1,0.03,3,Cap: 240 pF  Total Derated Cap: 240 pF  VDC: 50 V  ESR: 0 Ω  Package: 0402  
+Csnub2,MuRata,GRM31BR72E683KW01L,2,0.2,10.92,Cap: 68 nF  Total Derated Cap: 130 nF  VDC: 250 V  ESR: 1 mΩ  Package: 1206  
+Lout,CUSTOM,CUSTOM,1,0,0,L: 2.9 mH  DCR: 500 µΩ  IDC: 660 mA  
+Cfb,MuRata,GRM033R70J103KA01D,1,0.01,2.08,Cap: 10 nF  Total Derated Cap: 10 nF  VDC: 6.3 V  ESR: 1 mΩ  Package: 0201  
+Cvdd,Nichicon,UUD1V151MNL1GS,1,0.23,113.3,Cap: 150 µF  Total Derated Cap: 150 µF  VDC: 35 V  ESR: 170 mΩ  Package: 8x10  
+Cout,CUSTOM,CUSTOM,1,0,0,Cap: 43.44 nF  Total Derated Cap: 43 nF  VDC: 1.15 kV  ESR: 1 fΩ  Package: null  
+R10,CUSTOM,CUSTOM,1,0,0,Resistance: 47.66 kΩ  Tolerance: 0.0%  Power: 0 W  
+Q1,Fairchild Semiconductor,MMBT4403,1,0.09,14,IcRated: 600 mA  HfeMin: 60   Vcbo: 40 V  
+M2,Infineon Technologies,BSC160N15NS5ATMA1,1,1.63,55.13,VdsMax: 150 V  IdsMax: 56 Amps  
+R11,CUSTOM,CUSTOM,1,0,0,Resistance: 800 Ω  Tolerance: 0.0%  Power: 0 W  
+Ropto,Yageo,RC0201FR-0710KL,1,0.01,2.08,Resistance: 10 kΩ  Tolerance: 1.0%  Power: 50 mW  
+D3,CUSTOM,CUSTOM,1,0,0,Type: ?  VRRM: 2.79 kV  Io: 600 mA  
+C5,CUSTOM,CUSTOM,1,0,0,Cap: 220 nF  Total Derated Cap: 220 nF  VDC: 2.68 kV  ESR: 0 Ω  Package: null  
+Rfbt,CUSTOM,CUSTOM,1,0,0,Resistance: 1.87 MΩ  Tolerance: 0.0%  Power: 0 W  
