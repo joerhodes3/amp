@@ -3,9 +3,9 @@
 *                        | +24 (top) --> 460v tubes [boost]
 *                        |
 * -----48v--[Bipolar]----|
-*                        |                    | +12-[vreg]->+5v-[vreg]->+3.3v |
-*                        | +24 ---[Bipolar]---|                               |
-*                                             | -12                           | heaters (6.3v, 5.5a) [buck]
+*                        |                    | +10.5-[vreg]->+5v-[vreg]->+3.3v |
+*                        | +24 ---[Bipolar]---|                                 |
+*                                             | -13.6                           | heaters (6.3v, 5.5a) [buck]
 *
 * Uses op-amps + power BJTs (MJL3281A/MJL1302A)
 *

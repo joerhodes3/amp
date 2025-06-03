@@ -7,7 +7,8 @@
 *.include "/home/jrhodes/modern_tube_amp/spice/OPA2156.lib"
 *
 * input -- RCA and/or XLR+ (pin 2)
-V1 IN /Vgnd DC SIN(0 1.2 1k)
+*V1 IN /Vgnd DC SIN(0 1.2 1k)
+V1 IN /Vgnd DC 0 AC 0 SIN(0 1.2 1k)
 * in truth /Vgnd and GND will likely differ by 12V or so -- that is why they are isolated
 * XLR- (pin 3)
 *V2 IN- /Vgnd DC -V(IN) ; should have worked
@@ -16,27 +17,25 @@ V1 IN /Vgnd DC SIN(0 1.2 1k)
 V3 /pwr /Vgnd DC 5
 
 * op amp power
-V4 /VEE /Vgnd DC -12
-V5 /VCC /Vgnd DC 12
+V4 /VEE /Vgnd DC -13.5
+V5 /VCC /Vgnd DC 10.5
 
 * tube heaters -- make soft start, RC delay ramps up slowly?
 V6 /H1 /HGND_12ax7 DC 6 
 V7 /H2 /HGND_12ax7 DC 6 
 V8 /H3 /HGND_KT88 DC 6 
 V9 /H4 /HGND_KT88 DC 6 
-* for sim let /HGND be GND -- in real life, isolated
-RHGND1 /HGND_12ax7 GND 1
-RHGND2 /HGND_KT88 GND 1
 
 * tube power
 V10 /B+ /tube_GND DC 460 
 
-* GND management for sim --don't do in real life
-* -- in real life /tube_GND is GND in KiCAD -- will need to make LOGIC relitve to /Vgnd insch, and redo 20pin molex
-B2 /Vgnd 0 V = V(/tube_GND) - 12
+* GND management for sim -- don't do in real life
+* -- in real life /tube_GND is Vgnd in KiCAD -- split GND done -- TODO, and redo 20pin molex, add Rsim
+****B2 /Vgnd 0 V = V(/tube_GND) - 12
 Rsim1 /tube_GND 0 1Meg
 Rsim2 /HGND_12ax7 0 1Meg
 Rsim3 /HGND_KT88 0 1Meg
+Vgnd /Vgnd 0 DC -1.5
 
 *********************** ss pre amp
 * op pwr
@@ -51,7 +50,7 @@ C28 /VEE /Vgnd 300u
 C19 /Vgnd /VCC 100n
 C20 /Vgnd /VEE 100n
 * preamp -- 4x+ balanced gain
-XU_preamp T5-AA_ U10A--IN_A_ U10A-+IN_A_ /VCC U10B-+IN_B_ U10B--IN_B_ T6-AA_ /VEE OPAMP_DIP8
+XU_preamp OUTA+ U10A--IN_A_ U10A-+IN_A_ /VCC U10B-+IN_B_ U10B--IN_B_ OUTB- /VEE OPAMP_DIP8
 
 *in
 R23 /Unbal- U10A-+IN_A_ 10k
@@ -68,10 +67,8 @@ R22 /Unbal+ U10B--IN_B_ 500
 R24 /Unbal- U10A--IN_A_ 500
 
 * out
-C1 T6-AA_ T5-AA_ .1u
-
-R9 T5-AA_ /PRE+ 500
-R10 T6-AA_ /PRE- 500
+Csignal1 /PRE+ OUTA+ 0.1uF
+Csignal2 /PRE- OUTB- 0.1uF
 
 
 
@@ -106,13 +103,18 @@ Cbal2 /Vgnd bal-OUT_B_ .1u
 **********************to do filter
 
 ********************** tube amp
-* input
-R2 /B+ U3B-A_ 260k
-R3 /B+ U3A-A_ 260k
+* input -- was 260k???? do I lower RGRID into KT88?
+R2 /B+ U3B-A_ 180k
+R3 /B+ U3A-A_ 180k
+
+* Grid leak resistor to /tube_GND (bias ref)
+Rsignal_grid1 /PRE+ /tube_GND 220k
+Rsignal_grid2 /PRE- /tube_GND 220k
+
 XU3 U3B-A_ /PRE+ U3B-K_ /H1 /H2 U3A-A_ /PRE- U3A-K_ /HGND_12ax7 12AX7_dual
 * output via Annode
-**C3 U3B-A_ /SIG+ 0.22u ; 400V Bypass caps
-**C4 U3A-A_ /SIG- 0.22u ; 400V Bypass caps
+C3 U3B-A_ /SIG+ 0.22u ; 400V Bypass caps
+C4 U3A-A_ /SIG- 0.22u ; 400V Bypass caps
 
 * was 220k -- higher R is higher voltage /SIG on GRID going into KT88
 Rgrid1 /SIG+ /tube_GND 220k
@@ -127,10 +129,14 @@ R4 U3A-K_ /tube_GND 1.5k
 
 * output
 Rstop1 G1A /SIG+ 1.5k
-**XU5 NC-U5-0 G1A U5A-K_G3_ /H3 /HGND_KT88 NC-U5-1 out_p NC-U5-2 /l+ KT88
+XU5 NC-U5-0 G1A U5A-K_G3_ /H3 /HGND_KT88 NC-U5-1 out_p NC-U5-2 /l+ KT88
+* syntax error
+*C8 /tube_GND U5A-K_G3_ 25u
 
 Rstop2 G1B /SIG- 1.5k
-**XU6 NC-U6-0 G1B U6A-K_G3_ /H4 /HGND_KT88 NC-U6-1 out_n NC-U6-2 /l- KT88
+XU6 NC-U6-0 G1B U6A-K_G3_ /H4 /HGND_KT88 NC-U6-1 out_n NC-U6-2 /l- KT88
+* syntax error
+*C9 /tube_GND U6A-K_G3_ 25u
 
 * bias
 XU7 U7-ADJ_ /tube_GND U7-VI_ LM317
@@ -149,10 +155,32 @@ RSPK_common1 /Spk- GND 1
 
 
 
-.tran 10u 20m
+.tran 10u 50m
+.IC V(U3B-G_)=0
+.IC V(U3A-G_)=0
 .control
 run
-plot v(/PRE+) v(/PRE-) v(U3A-A_) v(U3B-A_)
+plot v(/PRE+) v(/PRE-) v(U3B-A_) v(U3A-A_) v(out_p) v(out_n) v(/Spk+)
+*plot v(/PRE+) v(/PRE-) v(U3B-G_) - v(U3B-K_) v(U3A-G_) - v(U3A-K_)
+
+
+
+*.op
+*.control
+*run
+*print v(U3B-A_) v(/PRE+) v(U3B-G_) v(U3B-K_)
+*print v(U3A-A_) v(/PRE-) v(U3A-G_) v(U3A-K_)
+*
+* from ngspice:
+*   v(u3b-a_) = 4.598779e+02
+*   v(/pre+) = -1.20023e+01
+*   v(u3b-k_) = -1.33302e-03
+*   v(u3a-a_) = 4.598779e+02
+*   v(/pre-) = -1.20021e+01
+*   v(u3a-k_) = -1.33301e-03
+*
+* why 460v at anode??? R2/R3 are suposed to knock it down to like 240V
+*
 .endc
 * ===========================
 * 12AX7 SPICE Model by Norman Koren
