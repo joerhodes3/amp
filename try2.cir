@@ -31,11 +31,11 @@ V10 /B+ /tube_GND DC 460
 
 * GND management for sim -- don't do in real life
 * -- in real life /tube_GND is Vgnd in KiCAD -- split GND done -- TODO, and redo 20pin molex, add Rsim
-****B2 /Vgnd 0 V = V(/tube_GND) - 12
-Rsim1 /tube_GND 0 1Meg
-Rsim2 /HGND_12ax7 0 1Meg
-Rsim3 /HGND_KT88 0 1Meg
+Rsim1 /tube_GND 0 1
+Rsim2 /HGND_12ax7 0 1
+Rsim3 /HGND_KT88 0 1
 Vgnd /Vgnd 0 DC -1.5
+**B2 /Vgnd 0 V = V(/tube_GND) - 1.5
 
 *********************** ss pre amp
 * op pwr
@@ -56,19 +56,19 @@ XU_preamp OUTA+ U10A--IN_A_ U10A-+IN_A_ /VCC U10B-+IN_B_ U10B--IN_B_ OUTB- /VEE 
 R23 /Unbal- U10A-+IN_A_ 10k
 R21 /Unbal+ U10B-+IN_B_ 10k
 
-R25 U10A-+IN_A_ /Vgnd 10k
-R20 U10B-+IN_B_ /Vgnd 10k
+R25 U10A-+IN_A_ /Vgnd 8k
+R20 U10B-+IN_B_ /Vgnd 8k
 
 * feedback
-R26 U10A--IN_A_ T5-AA_ 10k
-R6 U10B--IN_B_ T6-AA_ 10k
+R26 U10A--IN_A_ OUTA+ 10k
+R6 U10B--IN_B_ OUTB- 10k
 
 R22 /Unbal+ U10B--IN_B_ 500
 R24 /Unbal- U10A--IN_A_ 500
 
 * out
-Csignal1 /PRE+ OUTA+ 0.1uF
-Csignal2 /PRE- OUTB- 0.1uF
+Csignal1 /PRE+ OUTA+ 0.22uF ; 400V Bypass caps -- not for voltage, but for sound
+Csignal2 /PRE- OUTB- 0.22uF ; 400V Bypass caps -- not for voltage, but for sound
 
 
 
@@ -104,12 +104,12 @@ Cbal2 /Vgnd bal-OUT_B_ .1u
 
 ********************** tube amp
 * input -- was 260k???? do I lower RGRID into KT88?
-R2 /B+ U3B-A_ 180k
-R3 /B+ U3A-A_ 180k
+R2 /B+ U3B-A_ 120k
+R3 /B+ U3A-A_ 120k
 
 * Grid leak resistor to /tube_GND (bias ref)
-Rsignal_grid1 /PRE+ /tube_GND 220k
-Rsignal_grid2 /PRE- /tube_GND 220k
+Rsignal_grid1 /PRE+ /tube_GND 120k
+Rsignal_grid2 /PRE- /tube_GND 120k
 
 XU3 U3B-A_ /PRE+ U3B-K_ /H1 /H2 U3A-A_ /PRE- U3A-K_ /HGND_12ax7 12AX7_dual
 * output via Annode
@@ -128,39 +128,48 @@ C7 /tube_GND U3A-K_ 25u
 R4 U3A-K_ /tube_GND 1.5k
 
 * output
-Rstop1 G1A /SIG+ 1.5k
+Rstop1 G1A /SIG+ 10k
 XU5 NC-U5-0 G1A U5A-K_G3_ /H3 /HGND_KT88 NC-U5-1 out_p NC-U5-2 /l+ KT88
 * syntax error
 *C8 /tube_GND U5A-K_G3_ 25u
 
-Rstop2 G1B /SIG- 1.5k
+Rstop2 G1B /SIG- 10k
 XU6 NC-U6-0 G1B U6A-K_G3_ /H4 /HGND_KT88 NC-U6-1 out_n NC-U6-2 /l- KT88
 * syntax error
 *C9 /tube_GND U6A-K_G3_ 25u
 
-* bias
+* bias -- VI is not constant 42V -- varies 2-56V,  go HV???
 XU7 U7-ADJ_ /tube_GND U7-VI_ LM317
-R1 U7-ADJ_ /tube_GND 36
+R1 U7-ADJ_ /tube_GND 20
 
-R8 U7-VI_ U6A-K_G3_ 4
-R7 U5A-K_G3_ U7-VI_ 4
+R8 U7-VI_ U6A-K_G3_ 500
+R7 U5A-K_G3_ U7-VI_ 500
 
 * power bypas cap
 C2 /tube_GND /B+ 100u ; 500V Jupiter Axial Cap
 XT4 out_p /l+ /B+ /l- out_n unconnected-_T4-Pad6_ /Spk+ unconnected-_T4-Pad8_ /Spk- Ham1650P
 * measure output here
+Rload /Spk+ /Spk- 8
 * LS1 /Spk- /Spk+ Speaker
-RSPK_common1 /Spk- GND 1
+RSPK_common1 /Spk- /tube_GND 1
 
 
 
 
 .tran 10u 50m
-.IC V(U3B-G_)=0
-.IC V(U3A-G_)=0
+.IC V(/PRE+)=0
+.IC V(/PRE-)=0
+.meas Vrms_spkplus RMS V(/Spk+)
+.meas Vrms_load RMS V(/Spk+ - /Spk-)
+.meas Power_out PARAM (Vrms_load**2)/8
+
+.four 1k V(/Spk+)
+
 .control
 run
-plot v(/PRE+) v(/PRE-) v(U3B-A_) v(U3A-A_) v(out_p) v(out_n) v(/Spk+)
+*plot v(/Unbal+) v(/Unbal-) v(OUTA+) v(OUTB-) v(/PRE+) v(/PRE-)
+*plot v(/PRE+) v(/PRE-) v(U3B-A_) v(U3A-A_) v(/SIG+) v(/SIG-)
+plot v(IN) v(/Spk+) v(U7-VI_)
 *plot v(/PRE+) v(/PRE-) v(U3B-G_) - v(U3B-K_) v(U3A-G_) - v(U3A-K_)
 
 
@@ -168,18 +177,26 @@ plot v(/PRE+) v(/PRE-) v(U3B-A_) v(U3A-A_) v(out_p) v(out_n) v(/Spk+)
 *.op
 *.control
 *run
-*print v(U3B-A_) v(/PRE+) v(U3B-G_) v(U3B-K_)
-*print v(U3A-A_) v(/PRE-) v(U3A-G_) v(U3A-K_)
+*print v(U3B-A_) v(OUTA+) v(/PRE+) v(U3B-K_)
+*print v(U3A-A_) v(OUTB-) v(/PRE-) v(U3A-K_)
+*
+*print v(G1B) v(U6A-K_G3_) v(out_n) v(/l-)
 *
 * from ngspice:
-*   v(u3b-a_) = 4.598779e+02
-*   v(/pre+) = -1.20023e+01
-*   v(u3b-k_) = -1.33302e-03
-*   v(u3a-a_) = 4.598779e+02
-*   v(/pre-) = -1.20021e+01
-*   v(u3a-k_) = -1.33301e-03
-*
-* why 460v at anode??? R2/R3 are suposed to knock it down to like 240V
+* 12ax7
+*   v(u3b-a_) = 2.885607e+02
+* v(outa+) = -1.50024e+00
+*   v(/pre+) = 1.202569e-04
+*   v(u3b-k_) = 2.142990e+00
+*   v(u3a-a_) = 2.885607e+02
+* v(outb-) = -1.50011e+00
+*   v(/pre-) = 1.202569e-04
+*   v(u3a-k_) = 2.142990e+00
+* KT88
+*   v(g1b) = 9.503368e+01
+*   v(u6a-k_g3_) = 2.151284e-01
+*   v(out_n) = 4.599680e+02
+*   v(/l-) = 4.599893e+02
 *
 .endc
 * ===========================
@@ -213,7 +230,7 @@ XUA 6 7 8 12AX7_single
 * ===========================
 *.SUBCKT KT88 1 2 3 4 ;  P G1 C G2
 * pin 1,6,8 unused
-.SUBCKT KT88 nc 3 2 heater+ heater- nc 1 nc 4
+.SUBCKT KT88 nc 2 3 heater+ heater- nc 1 nc 4
 + PARAMS: MU=8.8 EX=1.35 KG1=730 KG2=4800 KP=32 KVB=16
 +         CCG=14P CPG1=.85P CCP=12P RGI=1K 
 

@@ -29,7 +29,7 @@ XUA 6 7 8 12AX7_single
 * ===========================
 *.SUBCKT KT88 1 2 3 4 ;  P G1 C G2
 * pin 1,6,8 unused
-.SUBCKT KT88 nc 3 2 heater+ heater- nc 1 nc 4
+.SUBCKT KT88 nc 2 3 heater+ heater- nc 1 nc 4
 + PARAMS: MU=8.8 EX=1.35 KG1=730 KG2=4800 KP=32 KVB=16
 +         CCG=14P CPG1=.85P CCP=12P RGI=1K 
 
