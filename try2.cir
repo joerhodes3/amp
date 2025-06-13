@@ -156,20 +156,48 @@ RSPK_common1 /Spk- /tube_GND 1
 
 
 
-.tran 10u 50m
+*.tran 10u 50m
+*.four 1k V(/Spk+ - /Spk-)
+
 .IC V(/PRE+)=0
 .IC V(/PRE-)=0
-.meas Vrms_spkplus RMS V(/Spk+)
-.meas Vrms_load RMS V(/Spk+ - /Spk-)
-.meas Power_out PARAM (Vrms_load**2)/8
-
-.four 1k V(/Spk+)
-
 .control
-run
+set noaskquit
+*
+* Manual sweep for frequency and THD calculation (in place of .four if unavailable)
+foreach f 1k
+*foreach f 15 22 33 50 75 100 150 220 330 500 750 1k 1500 2200 3300 5000 7500 10000 15000 22000 25000
+    alter V1 SIN(0 1.2 $f)
+
+    tran 10u 30m
+
+    echo "Frequency $f Hz complete" > sweep_$f
+
+*     fourier $f 10m 20m v(/spk+)
+*     display fourier*
+    wrdata raw_sweep_$f v(/Spk+)
+*    let idx = 2
+*    let sum_mag_square = 0
+*    while idx < 10
+*        let mag = fourier11[1][$&idx]
+*        let sum_mag_square = sum_mag_square + mag * mag
+*        let idx = $&idx + 1
+*    end
+*    let root_sum_mag_square = sqrt(sum_mag_square)
+*    let thd = root_sum_mag_square / fourier11[1][1] * 100
+
+    meas TRAN Vrms_load RMS V(/Spk+) from=10m to=20m
+    let Power_out = ($&Vrms_load*$&Vrms_load)/8
+
+    echo "RMS Vout = $&Vrms_load V" >> sweep_$f
+    echo "Power_out = $&Power_out W" >> sweep_$f
+*    echo "THD = $&thd" >> sweep_$f
+end
+*run
+
 *plot v(/Unbal+) v(/Unbal-) v(OUTA+) v(OUTB-) v(/PRE+) v(/PRE-)
 *plot v(/PRE+) v(/PRE-) v(U3B-A_) v(U3A-A_) v(/SIG+) v(/SIG-)
-plot v(IN) v(/Spk+) v(U7-VI_)
+*plot v(IN) v(/Spk+) v(U7-VI_)
 *plot v(/PRE+) v(/PRE-) v(U3B-G_) - v(U3B-K_) v(U3A-G_) - v(U3A-K_)
 
 
