@@ -67,8 +67,10 @@ R22 /Unbal+ U10B--IN_B_ 500
 R24 /Unbal- U10A--IN_A_ 500
 
 * out
-Csignal1 /PRE+ OUTA+ 0.22uF ; 400V Bypass caps -- not for voltage, but for sound
-Csignal2 /PRE- OUTB- 0.22uF ; 400V Bypass caps -- not for voltage, but for sound
+Csignal1 OUTB- OUTA+ 0.1u
+
+Rpre_out1 /PRE+ OUTA+ 500
+Rpre_out2 /PRE- OUTB- 500
 
 
 
@@ -102,23 +104,48 @@ Cbal2 /Vgnd bal-OUT_B_ .1u
 
 **********************to do filter
 
-********************** tube amp
-* input -- was 260k???? do I lower RGRID into KT88?
-R2 /B+ U3B-A_ 120k
-R3 /B+ U3A-A_ 120k
-
 * Grid leak resistor to /tube_GND (bias ref)
 Rsignal_grid1 /PRE+ /tube_GND 120k
 Rsignal_grid2 /PRE- /tube_GND 120k
 
-XU3 U3B-A_ /PRE+ U3B-K_ /H1 /H2 U3A-A_ /PRE- U3A-K_ /HGND_12ax7 12AX7_dual
-* output via Annode
-C3 U3B-A_ /SIG+ 0.22u ; 400V Bypass caps
-C4 U3A-A_ /SIG- 0.22u ; 400V Bypass caps
+* Diode from /tube_GND to /Vgnd????? is 1.5V above almost 1.72V?
 
-* was 220k -- higher R is higher voltage /SIG on GRID going into KT88
-Rgrid1 /SIG+ /tube_GND 220k
-Rgrid2 /SIG- /tube_GND 220k
+********************** tube amp
+R2 /B+ U3B-A_ 300k
+R3 /B+ U3A-A_ 300k
+
+XU3 U3B-A_ /PRE+ U3B-K_ /H1 /H2 U3A-A_ /PRE- U3A-K_ /HGND_12ax7 12AX7_dual
+
+* === Source follower for XU3A (PREOUT_A) to G1A ===
+* Bias gate
+Rbias_hi_A GBUF_A /B+ 1.5Meg
+Rbias_lo_A GBUF_A /tube_GND 220k
+
+* AC couple 12AX7 plate to gate
+CPL_A U3A-A_ AC_A 0.22u ; 400V Bypass caps
+RSIG_A AC_A GBUF_A 10k
+
+X_A /SIG+ GBUF_A VDRAIN_A IRF530P
+
+RG1A /SIG+ /tube_GND 100k
+
+* === Source follower for XU3B (PREOUT_B) to G1B ===
+* Bias gate
+Rbias_hi_B GBUF_B /B+ 1.5Meg
+Rbias_lo_B GBUF_B /tube_GND 220k
+
+* AC couple 12AX7 plate to gate
+CPL_B U3B-A_ AC_B 0.22u ; 400V Bypass caps
+RSIG_B AC_B GBUF_B 10k
+
+X_B /SIG- GBUF_B VDRAIN_B IRF530P
+
+RG1B /SIG- /tube_GND 100k
+
+* === Drop from /B+ to get MOSFET drain voltage ===
+* goal is 250V
+RVDRAIN_A /B+ VDRAIN_A 360k
+RVDRAIN_B /B+ VDRAIN_B 360k
 
 * Cathode bypass caps
 C6 /tube_GND U3B-K_ 25u
@@ -156,77 +183,74 @@ RSPK_common1 /Spk- /tube_GND 1
 
 
 
-*.tran 10u 50m
-*.four 1k V(/Spk+ - /Spk-)
-
 .IC V(/PRE+)=0
 .IC V(/PRE-)=0
 .control
 set noaskquit
-*
-* Manual sweep for frequency and THD calculation (in place of .four if unavailable)
-foreach f 1k
-*foreach f 15 22 33 50 75 100 150 220 330 500 750 1k 1500 2200 3300 5000 7500 10000 15000 22000 25000
+**
+** Manual sweep for frequency and THD calculation (in place of .four if unavailable)
+*foreach f 1k
+**foreach f 15 22 33 50 75 100 150 220 330 500 750 1k 1500 2200 3300 5000 7500 10000 15000 22000 25000
     alter V1 SIN(0 1.2 $f)
-
+*
     tran 10u 30m
-
+*
     echo "Frequency $f Hz complete" > sweep_$f
-
-*     fourier $f 10m 20m v(/spk+)
-*     display fourier*
-    wrdata raw_sweep_$f v(/Spk+)
-*    let idx = 2
-*    let sum_mag_square = 0
-*    while idx < 10
-*        let mag = fourier11[1][$&idx]
-*        let sum_mag_square = sum_mag_square + mag * mag
-*        let idx = $&idx + 1
-*    end
-*    let root_sum_mag_square = sqrt(sum_mag_square)
-*    let thd = root_sum_mag_square / fourier11[1][1] * 100
-
+*
+**     fourier $f 10m 20m v(/spk+)
+**     display fourier*
+**    wrdata raw_sweep_$f v(/Spk+)
+**    let idx = 2
+**    let sum_mag_square = 0
+**    while idx < 10
+**        let mag = fourier11[1][$&idx]
+**        let sum_mag_square = sum_mag_square + mag * mag
+**        let idx = $&idx + 1
+**    end
+**    let root_sum_mag_square = sqrt(sum_mag_square)
+**    let thd = root_sum_mag_square / fourier11[1][1] * 100
+*
     meas TRAN Vrms_load RMS V(/Spk+) from=10m to=20m
     let Power_out = ($&Vrms_load*$&Vrms_load)/8
-
+*
     echo "RMS Vout = $&Vrms_load V" >> sweep_$f
     echo "Power_out = $&Power_out W" >> sweep_$f
-*    echo "THD = $&thd" >> sweep_$f
+**    echo "THD = $&thd" >> sweep_$f
 end
-*run
-
+run
 *plot v(/Unbal+) v(/Unbal-) v(OUTA+) v(OUTB-) v(/PRE+) v(/PRE-)
 *plot v(/PRE+) v(/PRE-) v(U3B-A_) v(U3A-A_) v(/SIG+) v(/SIG-)
 *plot v(IN) v(/Spk+) v(U7-VI_)
-*plot v(/PRE+) v(/PRE-) v(U3B-G_) - v(U3B-K_) v(U3A-G_) - v(U3A-K_)
+*plot v(/PRE+) v(G1A) v(out_p) v(out_n) v(/Spk+)
+* step 1
+plot v(/PRE+) v(/PRE-) v(U3B-A_) v(U3A-A_) v(G1A) - v(U5A-K_G3_) v(G1B) - v(U6A-K_G3_)  v(out_p) v(out_n) v(/Spk+)
+*step2
+*plot v(/PRE-) v(/*PRE+)
+**plot V(GBUF_A)  V(SBUF_A)  V(GBUF_A) - V(SBUF_A)
+*plot V(GBUF_A) V(SBUF_A) V(G1A) V(G1A) - V(U5A-K_G3_)
 
 
 
 *.op
 *.control
 *run
-*print v(U3B-A_) v(OUTA+) v(/PRE+) v(U3B-K_)
-*print v(U3A-A_) v(OUTB-) v(/PRE-) v(U3A-K_)
-*
-*print v(G1B) v(U6A-K_G3_) v(out_n) v(/l-)
-*
-* from ngspice:
-* 12ax7
-*   v(u3b-a_) = 2.885607e+02
-* v(outa+) = -1.50024e+00
-*   v(/pre+) = 1.202569e-04
-*   v(u3b-k_) = 2.142990e+00
-*   v(u3a-a_) = 2.885607e+02
-* v(outb-) = -1.50011e+00
-*   v(/pre-) = 1.202569e-04
-*   v(u3a-k_) = 2.142990e+00
-* KT88
-*   v(g1b) = 9.503368e+01
-*   v(u6a-k_g3_) = 2.151284e-01
-*   v(out_n) = 4.599680e+02
-*   v(/l-) = 4.599893e+02
+*print V(VDRAIN_B)
+*print V(GBUF_B)
+*print V(/SIG-)
+*print V(G1B)
+*print V(U6A-K_G3_)
+*print V(G1B) - V(U6A-K_G3_)
+* ngspice:
+*v(vdrain_b) = 6.911437e+01
+*v(gbuf_b) = 5.883718e+01
+*v(/sig-) = 1.063171e+01
+*v(g1b) = 1.063172e+01
+*v(u6a-k_g3_) = 5.378549e+01
+* goal is -45v to -52v diif grid to cathode?
+*v(g1b) - v(u6a-k_g3_) = -4.31538e+01
 *
 .endc
+
 * ===========================
 * 12AX7 SPICE Model by Norman Koren
 * ===========================
@@ -399,5 +423,14 @@ CBS3 22 3 1PF
 X_opamp_A 3 2 4 8 1 OPAMP_SINGLE
 X_opamp_B 5 6 4 8 7 OPAMP_SINGLE
 .ENDS
+
+********************************************************************************
+* IRF530PBF-BE3 TO-220
+********************************************************************************
+.subckt IRF530P D G S
+M1 D G S S IRF530PMOD
+.model IRF530PMOD PMOS (VTO=-2.0 BETA=2 LAMBDA=0.01 RDS=0.1)
+* CGS/CGD = 1nF → realistic switching delay (you can tweak or remove for speed) :: ngspice did not like these parameters
+.ends IRF530P
 
 .end
