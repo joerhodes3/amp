@@ -7,88 +7,85 @@
 *.include "/home/jrhodes/modern_tube_amp/spice/OPA2156.lib"
 *
 * input -- RCA and/or XLR+ (pin 2)
-*V1 IN /Vgnd DC SIN(0 1.2 1k)
-V1 IN /Vgnd DC 0 AC 0 SIN(0 1.2 1k)
-* in truth /Vgnd and GND will likely differ by 12V or so -- that is why they are isolated
+*V1 IN GND DC SIN(0 1.2 1k)
+V1 IN GND DC 0 AC 0 SIN(0 1.2 1k)
+* in truth GND and GND will likely differ by 12V or so -- that is why they are isolated
 * XLR- (pin 3)
-*V2 IN- /Vgnd DC -V(IN) ; should have worked
+*V2 IN- GND DC -V(IN) ; should have worked
 
-* board power
-V3 /pwr /Vgnd DC 5
+* board power -- export always on for UI, make 5V switch which is only for selector (RCA/XLR)
+V3 /pwr GND DC 5
 
 * op amp power
-V4 /VEE /Vgnd DC -13.5
-V5 /VCC /Vgnd DC 10.5
+V4 /VEE GND DC -15
+V5 /VCC GND DC 15
 
 * tube heaters -- make soft start, RC delay ramps up slowly?
-V6 /H1 /HGND_12ax7 DC 6 
-V7 /H2 /HGND_12ax7 DC 6 
-V8 /H3 /HGND_KT88 DC 6 
-V9 /H4 /HGND_KT88 DC 6 
+V6 /H1 /HGND_1 DC 6 
+V7 /H2 /HGND_2 DC 6 
 
-* tube power
-V10 /B+ /tube_GND DC 460 
+* tube power (plate)
+V8 /B+ GND DC 400
+* grid bias
+V9 /GridBias GND -50
 
 * GND management for sim -- don't do in real life
-* -- in real life /tube_GND is Vgnd in KiCAD -- split GND done -- TODO, and redo 20pin molex, add Rsim
-Rsim1 /tube_GND 0 1
-Rsim2 /HGND_12ax7 0 1
-Rsim3 /HGND_KT88 0 1
-Vgnd /Vgnd 0 DC -1.5
-**B2 /Vgnd 0 V = V(/tube_GND) - 1.5
+Rsim1 GND 0 1
+Rsim2 /HGND_1 0 1
+Rsim3 /HGND_2 0 1
 
 *********************** ss pre amp
 * op pwr
-C23 /Vgnd /VCC 300u
-C24 /VEE /Vgnd 300u
-C25 /Vgnd /VCC 300u
-C26 /VEE /Vgnd 300u
-C27 /Vgnd /VCC 300u
-C28 /VEE /Vgnd 300u
+C23 GND /VCC 330u ; Tantalum
+C24 /VEE GND 330u ; Tantalum
+C25 GND /VCC 330u ; Tantalum
+C26 /VEE GND 330u ; Tantalum
+C27 GND /VCC 330u ; Tantalum
+C28 /VEE GND 330u ; Tantalum
 
 * preamp power
-C19 /Vgnd /VCC 100n
-C20 /Vgnd /VEE 100n
-* preamp -- 4x+ balanced gain
+C19 GND /VCC 100n
+C20 GND /VEE 100n
+* preamp -- 6x+ balanced gain (+/-12V)
 XU_preamp OUTA+ U10A--IN_A_ U10A-+IN_A_ /VCC U10B-+IN_B_ U10B--IN_B_ OUTB- /VEE OPAMP_DIP8
 
 *in
 R23 /Unbal- U10A-+IN_A_ 10k
 R21 /Unbal+ U10B-+IN_B_ 10k
 
-R25 U10A-+IN_A_ /Vgnd 8k
-R20 U10B-+IN_B_ /Vgnd 8k
+R25 U10A-+IN_A_ GND 1.5k
+R20 U10B-+IN_B_ GND 1.5k
 
 * feedback
-R26 U10A--IN_A_ OUTA+ 10k
-R6 U10B--IN_B_ OUTB- 10k
+R26 U10A--IN_A_ OUTA+ 22k
+R6 U10B--IN_B_ OUTB- 22k
 
-R22 /Unbal+ U10B--IN_B_ 500
-R24 /Unbal- U10A--IN_A_ 500
+R22 /Unbal+ U10B--IN_B_ 1.5k
+R24 /Unbal- U10A--IN_A_ 1.5k
 
 * out
 Csignal1 OUTB- OUTA+ 0.1u
 
-Rpre_out1 /PRE+ OUTA+ 500
-Rpre_out2 /PRE- OUTB- 500
+Rpre_out1 /PRE+ OUTA+ 4.7k
+Rpre_out2 /PRE- OUTB- 4.7k
 
 
 
 
 
 *balanced power
-Cbal_e1 /Vgnd /VEE 100n
-Cbal_c1 /Vgnd /VCC 100n
+Cbal_e1 GND /VEE 100n
+Cbal_c1 GND /VCC 100n
 
 * RCA to balanced -- goal is unity gain
-X_bal bal-OUT_A_ bal--IN_A_ bal-+IN_A_ /VCC /Vgnd bal--IN_B_ bal-out_B_ /VEE OPAMP_DIP8
+X_bal bal-OUT_A_ bal--IN_A_ bal-+IN_A_ /VCC GND bal--IN_B_ bal-out_B_ /VEE OPAMP_DIP8
 
 * in+ (noninverting)
 Rbal_in1 bal-+IN_A_ IN 10k
-Rbal_in_gnd1 bal-+IN_A_ /Vgnd 10k
+Rbal_in_gnd1 bal-+IN_A_ GND 10k
 * feedback+
 Rbal_back1 bal--IN_A_ bal-OUT_A_ 10k
-Rbal_back_gnd1 bal--IN_A_ /Vgnd 10k
+Rbal_back_gnd1 bal--IN_A_ GND 10k
 
 * in - (inverting)
 Rbal_in2 bal--IN_B_ IN 10k
@@ -97,103 +94,88 @@ Rbal_back2 bal--IN_B_ bal-OUT_B_ 10k
 
 * out
 Rbal_out1 bal-OUT_A_ /Unbal+ 500
-Cbal1 /Vgnd bal-OUT_A_ .1u
+Cbal1 GND bal-OUT_A_ .1u
 
 Rbal_out2 bal-OUT_B_ /Unbal- 500
-Cbal2 /Vgnd bal-OUT_B_ .1u
+Cbal2 bal-OUT_B_ GND .1u
 
 **********************to do filter
 
-* Grid leak resistor to /tube_GND (bias ref)
-Rsignal_grid1 /PRE+ /tube_GND 120k
-Rsignal_grid2 /PRE- /tube_GND 120k
-
-* Diode from /tube_GND to /Vgnd????? is 1.5V above almost 1.72V?
 
 ********************** tube amp
-R2 /B+ U3B-A_ 300k
-R3 /B+ U3A-A_ 300k
+* === NMOS Followers ===
+XMDRIVE_A DRAIN_A /PRE+ SRC_A ZVN4310
+XMDRIVE_B DRAIN_B /PRE- SRC_B ZVN4310
 
-XU3 U3B-A_ /PRE+ U3B-K_ /H1 /H2 U3A-A_ /PRE- U3A-K_ /HGND_12ax7 12AX7_dual
+* Gate input bias 60v
+RIN_lo_A /PRE+ GND 400k
+RIN_lo_B /PRE- GND 400k
+RIN_hi_A /PRE+ /B+ 60k
+RIN_hi_B /PRE- /B+ 60k
 
-* === Source follower for XU3A (PREOUT_A) to G1A ===
-* Bias gate
-Rbias_hi_A GBUF_A /B+ 1.5Meg
-Rbias_lo_A GBUF_A /tube_GND 220k
+* NMOS Drain -- output here nor S???
+RDRAIN_hi_A /B+ DRAIN_A 47k ; 3W -- https://hoffmanamps.com/
+RDRAIN_hi_B /B+ DRAIN_B 47k ; 3W -- https://hoffmanamps.com/
+* follower output caps to remove DC from NMOS stage
+COUT_A DRAIN_A /SIG+ 0.1u ; Panasonic-104 -- https://hoffmanamps.com/
+COUT_B DRAIN_B /SIG- 0.1u ; 250V Bypass caps -- https://hoffmanamps.com/
 
-* AC couple 12AX7 plate to gate
-CPL_A U3A-A_ AC_A 0.22u ; 400V Bypass caps
-RSIG_A AC_A GBUF_A 10k
+* Source
+RSRC_A SRC_A GND 4.7k ; 3W -- https://hoffmanamps.com/
+RSRC_B SRC_B GND 4.7k ; 3W -- https://hoffmanamps.com/
 
-X_A /SIG+ GBUF_A VDRAIN_A IRF530P
 
-RG1A /SIG+ /tube_GND 100k
+* === Grid-leak resistors to bias point for G1 (-100v) ===
+RGB1A /SIG+ /GridBias 22k ; 3W -- https://hoffmanamps.com/
+RGB1B /SIG- /GridBias 22k ; 3W -- https://hoffmanamps.com/
+CGB_1 /GridBias GND 16u ; FT 475v -- https://hoffmanamps.com/
 
-* === Source follower for XU3B (PREOUT_B) to G1B ===
-* Bias gate
-Rbias_hi_B GBUF_B /B+ 1.5Meg
-Rbias_lo_B GBUF_B /tube_GND 220k
+* === KT88 Connections ===
+* bias cathode -- VI is not constant 42V+
+XU7 U7-ADJ_ GND U7-VI_ LM317
+R1 U7-ADJ_ GND 22
 
-* AC couple 12AX7 plate to gate
-CPL_B U3B-A_ AC_B 0.22u ; 400V Bypass caps
-RSIG_B AC_B GBUF_B 10k
+R8 KT88A_K U7-VI_ 250 ; 5W :: wirewound -- https://hoffmanamps.com/
+R7 KT88B_K U7-VI_ 250 ; 5W :: wirewound -- https://hoffmanamps.com/
 
-X_B /SIG- GBUF_B VDRAIN_B IRF530P
+C8 GND KT88A-K 25u
+C9 GND KT88B-K 25u
 
-RG1B /SIG- /tube_GND 100k
-
-* === Drop from /B+ to get MOSFET drain voltage ===
-* goal is 250V
-RVDRAIN_A /B+ VDRAIN_A 360k
-RVDRAIN_B /B+ VDRAIN_B 360k
-
-* Cathode bypass caps
-C6 /tube_GND U3B-K_ 25u
-R5 U3B-K_ /tube_GND 1.5k
-
-C7 /tube_GND U3A-K_ 25u
-R4 U3A-K_ /tube_GND 1.5k
-
-* output
-Rstop1 G1A /SIG+ 10k
-XU5 NC-U5-0 G1A U5A-K_G3_ /H3 /HGND_KT88 NC-U5-1 out_p NC-U5-2 /l+ KT88
-* syntax error
-*C8 /tube_GND U5A-K_G3_ 25u
-
-Rstop2 G1B /SIG- 10k
-XU6 NC-U6-0 G1B U6A-K_G3_ /H4 /HGND_KT88 NC-U6-1 out_n NC-U6-2 /l- KT88
-* syntax error
-*C9 /tube_GND U6A-K_G3_ 25u
-
-* bias -- VI is not constant 42V -- varies 2-56V,  go HV???
-XU7 U7-ADJ_ /tube_GND U7-VI_ LM317
-R1 U7-ADJ_ /tube_GND 20
-
-R8 U7-VI_ U6A-K_G3_ 500
-R7 U5A-K_G3_ U7-VI_ 500
+* === Ultralinear screen grid ===
+* Assuming ideal TX with taps L+ and L-
+RLG2A /l+ KT88A_G2 1k ; 3W -- https://hoffmanamps.com/
+RLG2B /l- KT88B_G2 1k ; 3W -- https://hoffmanamps.com/
+* STOP resistors for G1
+RG1A /SIG+ KT88A_G1 4.7k ; 3W -- https://hoffmanamps.com/
+RG1B /SIG- KT88B_G1 4.7k ; 3W -- https://hoffmanamps.com/
+* Tubes (Push-Pull)
+* Remember 8pin sockets -- https://hoffmanamps.com/
+XKT88A NC-U5-0 KT88A_G1 KT88A_K /H1 /HGND_1 NC-U5-1 out_p NC-U5-2 KT88A_G2 KT88
+XKT88B NC-U6-0 KT88B_G1 KT88B_K /H2 /HGND_2 NC-U6-1 out_n NC-U6-2 KT88B_G2 KT88
 
 * power bypas cap
-C2 /tube_GND /B+ 100u ; 500V Jupiter Axial Cap
+C2 GND /B+ 47u ; 500V FT
 XT4 out_p /l+ /B+ /l- out_n unconnected-_T4-Pad6_ /Spk+ unconnected-_T4-Pad8_ /Spk- Ham1650P
 * measure output here
 Rload /Spk+ /Spk- 8
-* LS1 /Spk- /Spk+ Speaker
-RSPK_common1 /Spk- /tube_GND 1
+* for sim
+RSPK_common1 /Spk- GND 1
 
 
 
 
 .IC V(/PRE+)=0
 .IC V(/PRE-)=0
+.IC V(/GridBias)=-36
 .control
 set noaskquit
 **
 ** Manual sweep for frequency and THD calculation (in place of .four if unavailable)
-*foreach f 1k
+foreach f 1k
 **foreach f 15 22 33 50 75 100 150 220 330 500 750 1k 1500 2200 3300 5000 7500 10000 15000 22000 25000
     alter V1 SIN(0 1.2 $f)
 *
-    tran 10u 30m
+    tran 10u 50m
 *
     echo "Frequency $f Hz complete" > sweep_$f
 *
@@ -219,15 +201,13 @@ set noaskquit
 end
 run
 *plot v(/Unbal+) v(/Unbal-) v(OUTA+) v(OUTB-) v(/PRE+) v(/PRE-)
-*plot v(/PRE+) v(/PRE-) v(U3B-A_) v(U3A-A_) v(/SIG+) v(/SIG-)
+**plot v(/PRE+) v(/PRE-) v(DRAIN_A) v(SRC_A) v(/SIG+) v(/SIG-)
 *plot v(IN) v(/Spk+) v(U7-VI_)
-*plot v(/PRE+) v(G1A) v(out_p) v(out_n) v(/Spk+)
-* step 1
-plot v(/PRE+) v(/PRE-) v(U3B-A_) v(U3A-A_) v(G1A) - v(U5A-K_G3_) v(G1B) - v(U6A-K_G3_)  v(out_p) v(out_n) v(/Spk+)
-*step2
-*plot v(/PRE-) v(/*PRE+)
-**plot V(GBUF_A)  V(SBUF_A)  V(GBUF_A) - V(SBUF_A)
-*plot V(GBUF_A) V(SBUF_A) V(G1A) V(G1A) - V(U5A-K_G3_)
+*plot v(out_p) v(out_n)
+**plot v(/PRE+) v(/PRE-) v(KT88A_G1) - v(KT88A_k) v(KT88B_G1) - v(KT88B_K) v(/SIG+) v(/SIG-)  v(out_p) v(out_n) v(/Spk+)
+plot v(KT88A_G1) v(KT88B_G1) v(KT88A_K) v(out_p) v(out_n) v(/Spk+)
+**plot v(KT88A_G1) v(KT88B_G1) v(out_p) v(out_n) v(/Spk+) v(/Spk-)
+**plot v(/l+) v(/l-) v(KT88A_G1) - v(KT88A_k) v(KT88B_G1) - v(KT88B_K) v(out_p) v(out_n)
 
 
 
@@ -250,32 +230,6 @@ plot v(/PRE+) v(/PRE-) v(U3B-A_) v(U3A-A_) v(G1A) - v(U5A-K_G3_) v(G1B) - v(U6A-
 *v(g1b) - v(u6a-k_g3_) = -4.31538e+01
 *
 .endc
-
-* ===========================
-* 12AX7 SPICE Model by Norman Koren
-* ===========================
-.SUBCKT 12AX7_single 1 2 3  ; P G C;  NEW MODEL
-+ PARAMS: MU=100 EX=1.4 KG1=1060 KP=600 KVB=300 RGI=2000 
-+ CCG=2.3P  CGP=2.4P CCP=.9P  ; ADD .7PF TO ADJACENT PINS; .5 TO OTHERS. 
-E1 7 0 VALUE={V(1,3)/KP*LOG(1+EXP(KP*(1/MU+V(2,3)/SQRT(KVB+V(1,3)*V(1,3)))))}
-RE1 7 0 1G
-G1 1 3 VALUE={(PWR(V(7),EX)+PWRS(V(7),EX))/KG1}
-RCP 1 3 1G    ; TO AVOID FLOATING NODES IN MU-FOLLOWER
-C1 2 3 {CCG}  ; CATHODE-GRID
-C2 2 1 {CGP}  ; GRID=PLATE
-C3 1 3 {CCP}  ; CATHODE-PLATE
-D3 5 3 DX     ; FOR GRID CURRENT
-R1 2 5 {RGI}  ; FOR GRID CURRENT
-.MODEL DX D(IS=1N RS=1 CJO=10PF TT=1N)
-.ENDS
-
-.SUBCKT 12AX7_dual 1 2 3 4 5 6 7 8 9
-* pin 4 id H1
-* pin 5 is H2
-* pin 9 is HGND
-XUB 1 2 3 12AX7_single
-XUA 6 7 8 12AX7_single
-.ENDS 12AX7_dual
 
 * ===========================
 * KT88 SPICE Model
@@ -313,7 +267,26 @@ K1 L1 L2 .9999999
 * ===========================
 * output transformer
 * ===========================
-.SUBCKT Ham1650P P1 Sg1 B Sg2 P2 O16 O8 O4 Com				
+.SUBCKT Ham1650P out_p g2a /B+ g2b out_n unconnected-_T4-Pad6_ /Spk+ unconnected-_T4-Pad8_ /Spk-
+* === Output Transformer Model ===
+* Primary windings
+Lpri1 out_p pri_ct 10H
+Lpri2 out_n pri_ct 10H
+
+* Secondary winding
+Lsec /Spk- /Spk+ 100mH
+
+* Mutual coupling
+Kout Lpri1 Lpri2 Lsec 0.995
+
+* Center tap to B+
+Rpri_ct1 /B+ pri_ct 1 ; << This connection is critical
+
+Eultra1 g2a 0 VALUE = { V(out_p) * 0.4 + V(/B+) * 0.6 }
+Eultra2 g2b 0 VALUE = { V(out_n) * 0.4 + V(/B+) * 0.6 }
+.ENDS Ham1650P				
+
+.SUBCKT Ham1650P_xls P1 Sg1 B Sg2 P2 O16 O8 O4 Com				
 * Push Pull transformer, with Ultralinear taps at 40%				
 * 6600 to 16 ohms, 3db 15 to 60000 hz				
 * speaker taps at 8 and 4 ohms				
@@ -336,7 +309,7 @@ RP4 Sg2 4 30
 RS1 O16 5 0.1				
 RS2 O8 6 0.1				
 RS3 O4 7 0.1				
-.ENDS Ham1650P				
+.ENDS Ham1650P_xls		
 * Acro Elco HK Peerless Dynaco Leak Gen Edcor
 
 * ===========================
@@ -425,12 +398,21 @@ X_opamp_B 5 6 4 8 7 OPAMP_SINGLE
 .ENDS
 
 ********************************************************************************
-* IRF530PBF-BE3 TO-220
+* ZVN4310GTA --N-CHANNEL MOSFET SOR 223 package? 31-99V???
 ********************************************************************************
-.subckt IRF530P D G S
-M1 D G S S IRF530PMOD
-.model IRF530PMOD PMOS (VTO=-2.0 BETA=2 LAMBDA=0.01 RDS=0.1)
-* CGS/CGD = 1nF → realistic switching delay (you can tweak or remove for speed) :: ngspice did not like these parameters
-.ends IRF530P
+*ZETEX ZVN4310GTA Spice Model v1.1 Last Revised 8/2/02
+.SUBCKT ZVN4310 3 4 5
+*NODES: DRAIN GATE SOURCE
+M1 3 2 5 5 MOD1
+RG 4 2 82
+RL 3 5 1E7
+C1 2 5 200E-12
+C2 3 2 13.5E-12 
+D1 5 3 DIODE1
+*
+.MODEL MOD1 NMOS VTO=2.555 RS=0.2068 RD=0.1665 IS=1E-15 KP=5.02
++CBD=288E-12 PB=1 LAMBDA=0
+.MODEL DIODE1 D IS=9.759E-13 N=1.02476 RS=0.0844
+.ENDS ZVN4310A
 
 .end

@@ -1,17 +1,22 @@
-* ±24V Linear Bipolar Supply from 48VDC
-*
-*                        | +24 (top) --> 460v tubes [boost]
-*                        |
-* -----48v--[Bipolar]----|
-*                        |                    | +10.5-[vreg]->+5v-[vreg]->+3.3v |
-*                        | +24 ---[Bipolar]---|                                 |
-*                                             | -13.6                           | heaters (6.3v, 5.5a) [buck]
+*                                                                          |--TIP140----|
+*          |--- +24v -------------TIP140--|--------------------------------|--TIP140----|------------------------------------------
+*          |            |                 |                                             |
+*          |            5V - (LDO)       +12v (LDO)                                     +480V,.25a (boost)
+*          |            always on        switched to opamps                             switch to tubes
+*          |            |                 |----TIP150---->trigger out                   |
+*          |            |                 |                                             |
+*48V, 5A---|--- GND--------------------------------------------------------------------------------------------
+*          |            |                 |                                             | *swap source*
+*          |           -5V - (LDO)       -12v (LDO)                                     +6.3V,5A (buck)
+*          |            always on        switched to opamps                             switch to tube heaters -- isolate GND
+*          |            |                 |                                             |
+*          |            |                 |                                             | *swap source*
+*          |--- -24v-----------TIP145-----------------------------TIP145-------------------------------------------
+*          
 *
 * Uses op-amps + power BJTs (MJL3281A/MJL1302A)
 *
-* use both 24V interally to ouput other voltages to AMPLIFIER [5v, +/-12v, 460v] also plan on using both [tube_GND, VGND]
-*   - this way can assume SIGNAL about 12V below tube_GND.......SIGNAL is +/-9V, so worst case -3v relitive to 12ax7 G1 (down to -21v) -- so better
-* also has a 12V trigger in and out, as well as a microcontroller @3.3v
+*/B+ 460v->480v, feed opamps/PMOS with +/-15v?
 
 * Global supply rail
 VRAW 100 0 DC 48
