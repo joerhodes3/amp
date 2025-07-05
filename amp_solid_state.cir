@@ -1,4 +1,4 @@
-.title modern_tube_amp
+.title modern_amp
 *
 *figure 2 XPA6 from emotiva is $4400.....so
 *
@@ -27,26 +27,29 @@ V1 IN GND DC 0 AC 0 SIN(0 1.3 1k)
 * XLR- (pin 3)
 *V2 IN- GND DC -V(IN) ; should have worked
 
-* ================================== Power(TODO -- ideal for now)
+* ================================== Power (TODO -- use ideal for now)
 * input cap
 Cinput_1 /GridBias GND 4700u ; power 4700u, this 1k or 2k -- nichicron?
 
 * TODO
 *                            |---relay-------------------------------------------------------------|------------------- offset -------
+*                            |                                                                     |
 *          |--- +48v ---|----|----TIP141--|---------------------------------|-- +24v --|           |
 *          |            |                 |                                 |          |           |
 *          |            |                 |                                 |          +15v        |
 *          |            |                 |                                 |          |           |
 *          |            |                 +12v (LDO)                        |          |           |
-*          |            5V - (LDO)        switched                          |          |           |
-*48V, 10A--|            always on         |----TIP141---->trigger out       |-- vGND --|           |
-*          |            |                 |                                 |          |           /B+ = 200v 1.7a
+*          |            5V - (LDO)        switched                          |-- vGND --|           |
+*48V, 10A--|            always on         |----TIP141---->trigger out       |          |           /B+ = 200v 1.7a
 *          |            |                 |                                 |          |           |
 *          |            |                 |                                 |          -15v        |
 *          |            |                 |                                 |          |           |
 *          |            |                 |                                 |-- -24v --|           |
+*          |            |                 |                                                        |
 *          |--- GND-----|-----------------|--------------------------------------------------------|---------------------------------------
-
+* 6 transitors over 2 shared heatsinks....5, 12, -15....tip, trigger, +15.........but what about +/-24 (split 48v)???? (4 tran for each hs)
+* always use adjustable VREG LM350A/LM337
+*
 * ideal for now
 V3 /pwr GND DC 5
 
@@ -95,6 +98,8 @@ Cbal1 vGND bal-OUT_A_ .1u
 
 Rbal_out2 bal-OUT_B_ /Unbal- 500
 Cbal2 bal-OUT_B_ vGND .1u
+
+* --> Select RCA or XLR <--
 
 * ================================== Pre amp (opamp +/-1v --> +/-10v)
 * preamp power
