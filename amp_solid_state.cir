@@ -1,5 +1,19 @@
 .title modern_tube_amp
 *
+*figure 2 XPA6 from emotiva is $4400.....so
+*
+*budget $340 amp
+*  PCB: 50
+*  power: 75 [with 2 heat]
+*  amp: 75 [with 2 heat]
+*  tans: 45
+*  power: 70
+*  -----------
+*  $315
+*
+*+ $320 custom woodwork
+*....for 12 amps
+*
 * old opamp -- remove and include TI in compatibility mode
 .include "/home/jrhodes/modern_tube_amp/spice/opamp_old.lib"
 *
@@ -13,14 +27,40 @@ V1 IN GND DC 0 AC 0 SIN(0 1.3 1k)
 * XLR- (pin 3)
 *V2 IN- GND DC -V(IN) ; should have worked
 
-* board power -- export always on for UI, make 5V switch which is only for selector (RCA/XLR)
+* ================================== Power(TODO -- ideal for now)
+* input cap
+Cinput_1 /GridBias GND 4700u ; power 4700u, this 1k or 2k -- nichicron?
+
+* TODO
+*                            |---relay-------------------------------------------------------------|------------------- offset -------
+*          |--- +48v ---|----|----TIP141--|---------------------------------|-- +24v --|           |
+*          |            |                 |                                 |          |           |
+*          |            |                 |                                 |          +15v        |
+*          |            |                 |                                 |          |           |
+*          |            |                 +12v (LDO)                        |          |           |
+*          |            5V - (LDO)        switched                          |          |           |
+*48V, 10A--|            always on         |----TIP141---->trigger out       |-- vGND --|           |
+*          |            |                 |                                 |          |           /B+ = 200v 1.7a
+*          |            |                 |                                 |          |           |
+*          |            |                 |                                 |          -15v        |
+*          |            |                 |                                 |          |           |
+*          |            |                 |                                 |-- -24v --|           |
+*          |--- GND-----|-----------------|--------------------------------------------------------|---------------------------------------
+
+* ideal for now
 V3 /pwr GND DC 5
 
 * op amp power
 V4 /VEE GND DC -15
 V5 /VCC GND DC 15
 
-* power
+* op amp power caps
+C23 GND /VCC 330u ; Tantalum
+C24 /VEE vGND 330u ; Tantalum
+C25 GND /VCC 330u ; Tantalum
+C26 /VEE vGND 330u ; Tantalum
+
+* output power
 V8 /B+ GND DC 200
 * grid bias
 V9 /GridBias GND 48
@@ -29,43 +69,7 @@ V9 /GridBias GND 48
 Rsim1 GND 0 1
 Rsim2 vGND_1 0 24
 
-*********************** ss pre amp
-* op pwr
-C23 GND /VCC 330u ; Tantalum
-C24 /VEE vGND 330u ; Tantalum
-C25 GND /VCC 330u ; Tantalum
-C26 /VEE vGND 330u ; Tantalum
-
-* preamp power
-C19 vGND /VCC 100n
-C20 vGND /VEE 100n
-* preamp -- 6x+ balanced gain (+/-12V)
-XU_preamp OUTA+ U10A--IN_A_ U10A-+IN_A_ /VCC U10B-+IN_B_ U10B--IN_B_ OUTB- /VEE OPAMP_DIP8
-
-*in
-R23 /Unbal- U10A-+IN_A_ 10k
-R21 /Unbal+ U10B-+IN_B_ 10k
-
-R25 U10A-+IN_A_ vGND 1.5k
-R20 U10B-+IN_B_ vGND 1.5k
-
-* feedback
-R26 U10A--IN_A_ OUTA+ 22k
-R6 U10B--IN_B_ OUTB- 22k
-
-R22 /Unbal+ U10B--IN_B_ 1.5k
-R24 /Unbal- U10A--IN_A_ 1.5k
-
-* out
-Csignal1 OUTB- OUTA+ 0.1u
-
-Rpre_out1 /PRE+ OUTA+ 4.7k
-Rpre_out2 /PRE- OUTB- 4.7k
-
-
-
-
-
+* ================================== RCA to balanced
 *balanced power
 Cbal_e1 vGND /VEE 100n
 Cbal_c1 vGND /VCC 100n
@@ -92,9 +96,35 @@ Cbal1 vGND bal-OUT_A_ .1u
 Rbal_out2 bal-OUT_B_ /Unbal- 500
 Cbal2 bal-OUT_B_ vGND .1u
 
+* ================================== Pre amp (opamp +/-1v --> +/-10v)
+* preamp power
+C19 vGND /VCC 100n
+C20 vGND /VEE 100n
+* preamp -- 6x+ balanced gain (+/-12V)
+XU_preamp OUTA+ U10A--IN_A_ U10A-+IN_A_ /VCC U10B-+IN_B_ U10B--IN_B_ OUTB- /VEE OPAMP_DIP8
 
-********************** solid state amp
-* === NMOS Followers ===
+*in
+R23 /Unbal- U10A-+IN_A_ 10k
+R21 /Unbal+ U10B-+IN_B_ 10k
+
+R25 U10A-+IN_A_ vGND 1.5k
+R20 U10B-+IN_B_ vGND 1.5k
+
+* feedback
+R26 U10A--IN_A_ OUTA+ 22k
+R6 U10B--IN_B_ OUTB- 22k
+
+R22 /Unbal+ U10B--IN_B_ 1.5k
+R24 /Unbal- U10A--IN_A_ 1.5k
+
+* out
+Csignal1 OUTB- OUTA+ 0.1u
+
+Rpre_out1 /PRE+ OUTA+ 4.7k
+Rpre_out2 /PRE- OUTB- 4.7k
+
+* ================================== NMOS buffer vGND --> GND (The sim is relative to this) also is stronger and is a 50v swing
+* NMOS Followers
 XMDRIVE_A DRAIN_A /PRE+ SRC_A ZVN4310
 XMDRIVE_B DRAIN_B /PRE- SRC_B ZVN4310
 
@@ -107,20 +137,21 @@ RIN_hi_B /PRE- /B+ 56k
 * NMOS Drain
 RDRAIN_hi_A /B+ DRAIN_A 47k ; 3W -- https://hoffmanamps.com/
 RDRAIN_hi_B /B+ DRAIN_B 47k ; 3W -- https://hoffmanamps.com/
-* follower output caps to remove DC from NMOS stage
-COUT_A DRAIN_A /SIG+ 0.1u ; Panasonic-104 -- https://hoffmanamps.com/
-COUT_B DRAIN_B /SIG- 0.1u ; 250V Bypass caps -- https://hoffmanamps.com/
 
 * Source
 RSRC_A SRC_A GND 4.7k ; 3W -- https://hoffmanamps.com/
 RSRC_B SRC_B GND 4.7k ; 3W -- https://hoffmanamps.com/
 
+* ================================== filter [improve]
+* follower output caps to remove DC from NMOS stage
+COUT_A DRAIN_A /SIG+ 0.1u ; Panasonic-104 -- https://hoffmanamps.com/
+COUT_B DRAIN_B /SIG- 0.1u ; 250V Bypass caps -- https://hoffmanamps.com/
 
-* === Gate-leak resistors to bias point for output ===
 RGB1A /SIG+ /GridBias 27k ; 3W -- https://hoffmanamps.com/
 RGB1B /SIG- /GridBias 27k ; 3W -- https://hoffmanamps.com/
-CGB_1 /GridBias GND 2000u ; power 4700u, this 1k or 2k -- nichicron?
+Coffset_1 /GridBias GND 2000u ; power 4700u, this 1k or 2k -- nichicron?
 
+* ================================== output
 Rh1 /SIG+ /out_hi1 4.7k ; 3W -- https://hoffmanamps.com/
 XOut_hi1 /B+ /out_hi1 out_p R6535KNZ
 Rh2 /SIG+ /out_hi2 4.7k ; 3W -- https://hoffmanamps.com/
@@ -135,7 +166,6 @@ XOut_lo2 /B+ /out_lo2 out_n R6535KNZ
 Rl3 /SIG- /out_lo3 4.7k ; 3W -- https://hoffmanamps.com/
 XOut_lo3 /B+ /out_lo3 out_n R6535KNZ
 
-
 * power bypas cap
 C200_a GND /B+ 680u ; 200V nichicon
 C200_b GND /B+ 680u ; 200V nichicon
@@ -145,8 +175,7 @@ Rload /Spk+ /Spk- 8
 * for sim
 RSPK_common1 /Spk- GND 1
 
-
-
+* ===========================================================================
 
 .IC V(/PRE+)=0
 .IC V(/PRE-)=0
